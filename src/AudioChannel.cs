@@ -93,13 +93,11 @@ public class AudioChannel : IAudioChannel, IDisposable {
 
   public void Reset(int slot) {
     ThrowIfDisposed();
-    Pause(slot);
     Cursors[slot] = 0;
   }
 
   public void ResetAll() {
     ThrowIfDisposed();
-    PauseAll();
     Array.Fill(Cursors, 0);
   }
 

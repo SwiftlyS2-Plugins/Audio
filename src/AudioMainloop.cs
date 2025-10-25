@@ -35,9 +35,9 @@ public class AudioMainloop : IDisposable {
       {
         return;
       }
-      for (int i = 0; i < AudioConstants.MaxPlayers; i++)
+      foreach (var player in Core.PlayerManager.GetAllPlayers())
       {
-        if (Core.PlayerManager.GetPlayer(i) is not { IsValid: true }) continue;
+        var i = player.PlayerID;
         if (audioManager.HasNextFrame(i))
         {
           buffer.AsSpan().Clear();
