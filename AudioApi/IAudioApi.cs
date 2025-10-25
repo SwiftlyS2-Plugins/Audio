@@ -7,11 +7,11 @@ namespace AudioApi;
 public interface IAudioApi {
 
   /// <summary>
-  /// Get a track with the given id.
-  /// If the track does not exist, it will be created.
+  /// Get a channel with the given id.
+  /// If the channel does not exist, it will be created.
   /// </summary>
-  /// <param name="id">The id of the track to create. </param>
-  /// <returns>The created track. </returns>
+  /// <param name="id">The id of the channel to create. </param>
+  /// <returns>The channel. </returns>
   IAudioChannel UseChannel(string id);
 
   /// <summary>

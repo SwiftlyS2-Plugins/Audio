@@ -30,7 +30,7 @@ public interface IAudioChannel {
   /// <summary>
   /// Plays the channel for the given player.
   /// </summary>
-  /// <param name="playerId">The player id to play the track for. </param>
+  /// <param name="playerId">The player id to play the channel for. </param>
   void Play(int playerId);
 
   /// <summary>
@@ -38,7 +38,7 @@ public interface IAudioChannel {
   /// 
   /// Pausing the channel will stop the audio from playing, which means the audio will not be synchronized with the other players.
   /// </summary>
-  /// <param name="playerId">The player id to pause the track for. </param>
+  /// <param name="playerId">The player id to pause the channel for. </param>
   void Pause(int playerId);
 
 
@@ -47,7 +47,7 @@ public interface IAudioChannel {
   /// 
   /// Unpausing the channel will resume the audio from the last paused state of this player.
   /// </summary>
-  /// <param name="playerId">The player id to resume the track for. </param>
+  /// <param name="playerId">The player id to resume the channel for. </param>
   void Resume(int playerId);
 
   /// <summary>
@@ -64,7 +64,7 @@ public interface IAudioChannel {
   /// 
   /// Unmuting the channel will recover the playing state.
   /// </summary>
-  /// <param name="playerId">The player id to unmute the track for. </param>
+  /// <param name="playerId">The player id to unmute the channel for. </param>
   void Unmute(int playerId);
 
 
