@@ -49,4 +49,14 @@ public partial class Audio(ISwiftlyCore core) : BasePlugin(core) {
     interfaceManager.AddSharedInterface<IAudioApi, AudioApi>("audio", ServiceProvider!.GetRequiredService<AudioApi>());
   }
 
+    public override void UseSharedInterface(IInterfaceManager interfaceManager)
+    {
+      var api = interfaceManager.GetSharedInterface<IAudioApi>("audio");
+
+      var channel = api.UseChannel("test");
+      channel.SetSource(api.DecodeFromFile("E:/p.mp3"));
+      channel.SetVolumeToAll(0.5f);
+      channel.PlayToAll();
+    }
+
 } 

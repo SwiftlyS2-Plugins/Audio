@@ -41,7 +41,9 @@ public class AudioManager : IDisposable {
 
   public ReadOnlySpan<short> GetNextFrame(int slot) {
     ResetCurrentFrame();
-    foreach (var channel in Channels) {
+    foreach (var channel in Channels)
+    {
+      channel.ProgressIfMuted(slot);
       if (channel.HasNextFrame(slot)) {
         MixFrames(CurrentFrame.AsSpan(), channel.GetNextFrame(slot), channel.Volume[slot]);
       }

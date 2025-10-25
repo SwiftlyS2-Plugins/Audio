@@ -35,9 +35,37 @@ public interface IAudioChannel {
 
   /// <summary>
   /// Pauses the channel for the given player.
+  /// 
+  /// Pausing the channel will stop the audio from playing, which means the audio will not be synchronized with the other players.
   /// </summary>
   /// <param name="playerId">The player id to pause the track for. </param>
   void Pause(int playerId);
+
+
+  /// <summary>
+  /// Resume the channel for the given player.
+  /// 
+  /// Unpausing the channel will resume the audio from the last paused state of this player.
+  /// </summary>
+  /// <param name="playerId">The player id to resume the track for. </param>
+  void Resume(int playerId);
+
+  /// <summary>
+  /// Mutes the channel for the given player.
+  /// 
+  /// Muting the channel will stop the audio from playing,
+  /// but acts like setting the volume to 0 and still progressing and synchronizing with other players.
+  /// </summary>
+  /// <param name="playerId"></param>
+  void Mute(int playerId);
+
+  /// <summary>
+  /// Unmutes the channel for the given player.
+  /// 
+  /// Unmuting the channel will recover the playing state.
+  /// </summary>
+  /// <param name="playerId">The player id to unmute the track for. </param>
+  void Unmute(int playerId);
 
 
   /// <summary>
@@ -63,8 +91,24 @@ public interface IAudioChannel {
   void PauseAll();
 
   /// <summary>
+  /// Resumes the channel for all players.
+  /// </summary>
+  void ResumeAll();
+
+
+  /// <summary>
+  /// Unmutes the channel for all players.
+  /// </summary>
+  void UnmuteAll();
+
+  /// <summary>
   /// Stop and resets the channel for all players.
   /// </summary>
   void ResetAll();
+
+  /// <summary>
+  /// Mutes the channel for all players.
+  /// </summary>
+  void MuteAll();
 
 }

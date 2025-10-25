@@ -20,6 +20,7 @@ public interface IAudioSource {
   /// The frame should have exact 960 bytes (480 shorts).
   /// 
   /// If your source acts like a live stream and does not have a fixed length, you can ignore the given cursor.
+  /// Do notice that this function can be called multiple times with the same cursor to be played for multiple players.
   /// </summary>
   /// <param name="cursor">The cursor to get the frame at. </param>
   /// <returns>The frame at the given cursor.</returns>
