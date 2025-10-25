@@ -1,10 +1,14 @@
 using System.Diagnostics;
+using System.Linq.Expressions;
+using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.ProtobufDefinitions;
+using SwiftlyS2.Shared.Sounds;
 
 namespace Audio;
 
 public class AudioMainloop : IDisposable {
+  private ILogger<AudioMainloop> logger;
   private ISwiftlyCore Core;
   private AudioManager audioManager;
   private CancellationTokenSource cancellationTokenSource;
@@ -13,7 +17,8 @@ public class AudioMainloop : IDisposable {
   private uint sectionNumber;
   private byte[] buffer = new byte[AudioConstants.MainloopBufferSize];
 
-  public AudioMainloop(ISwiftlyCore Core, AudioManager audioManager) {
+  public AudioMainloop(ISwiftlyCore Core, ILogger<AudioMainloop> logger, AudioManager audioManager) {
+    this.logger = logger;
     this.audioManager = audioManager;
     this.Core = Core;
     cancellationTokenSource = new CancellationTokenSource();
@@ -29,42 +34,48 @@ public class AudioMainloop : IDisposable {
 
   public async void StartAudio(CancellationToken cancellationToken)
   {
-    while (await timer.WaitForNextTickAsync())
-    {
-      if (cancellationToken.IsCancellationRequested)
+    try {
+      while (await timer.WaitForNextTickAsync())
       {
-        return;
-      }
-      foreach (var player in Core.PlayerManager.GetAllPlayers())
-      {
-        var i = player.PlayerID;
-        if (audioManager.HasNextFrame(i))
+        if (cancellationToken.IsCancellationRequested)
         {
-          buffer.AsSpan().Clear();
-          Core.NetMessage.Send<CSVCMsg_VoiceData>(msg =>
+          return;
+        }
+        foreach (var player in Core.PlayerManager.GetAllPlayers())
+        {
+          var i = player.PlayerID;
+          if (audioManager.HasNextFrame(i))
           {
-            msg.Client = -1;
-            msg.Tick = (uint)Core.Engine.TickCount;
-            int offset = 0;
-            msg.Audio.SequenceBytes = 0;
-            msg.Audio.SampleRate = AudioConstants.SampleRate;
-            msg.Audio.Format = VoiceDataFormat_t.VOICEDATA_FORMAT_OPUS;
-            msg.Audio.SectionNumber = sectionNumber;
-            for (int j = 0; j < AudioConstants.MaxPacketCount; j++)
+            buffer.AsSpan().Clear();
+            Core.NetMessage.Send<CSVCMsg_VoiceData>(msg =>
             {
-              if (!audioManager.HasNextFrame(i)) break;
-              var data = audioManager.GetNextFrameAsOpus(i);
-              data.CopyTo(buffer.AsSpan(offset));
-              msg.Audio.NumPackets += 1;
-              offset += data.Length;
-              msg.Audio.PacketOffsets.Add((uint)offset);
-            }
-            msg.Audio.VoiceData = buffer.AsSpan(0, offset).ToArray();
-            msg.Recipients.AddRecipient(i);
-            sectionNumber++;
-          });
+              msg.Client = -1;
+              msg.Tick = (uint)Core.Engine.TickCount;
+              int offset = 0;
+              msg.Audio.SequenceBytes = 0;
+              msg.Audio.SampleRate = AudioConstants.SampleRate;
+              msg.Audio.Format = VoiceDataFormat_t.VOICEDATA_FORMAT_OPUS;
+              msg.Audio.SectionNumber = sectionNumber;
+              for (int j = 0; j < AudioConstants.MaxPacketCount; j++)
+              {
+                if (!audioManager.HasNextFrame(i)) break;
+                var data = audioManager.GetNextFrameAsOpus(i);
+                data.CopyTo(buffer.AsSpan(offset));
+                msg.Audio.NumPackets += 1;
+                offset += data.Length;
+                msg.Audio.PacketOffsets.Add((uint)offset);
+              }
+              msg.Audio.VoiceData = buffer.AsSpan(0, offset).ToArray();
+              msg.Recipients.AddRecipient(i);
+              sectionNumber++;
+            });
+          }
         }
       }
+    }
+    catch (Exception e)
+    {
+      logger.LogError(e, "Error in AudioMainloop");
     }
   }
 }
