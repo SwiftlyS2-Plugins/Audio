@@ -19,12 +19,12 @@ public class AudioChannel : IAudioChannel, IDisposable {
     }
   }
 
-    public AudioChannel(string id) {
+  public AudioChannel(string id) {
     Id = id;
     for (int i = 0; i < AudioConstants.MaxPlayers; i++) {
       Cursors[i] = 0;
       Volume[i] = 1.0f;
-      IsPaused[i] = false;
+      IsPaused[i] = true;
       IsMuted[i] = false;
     }
   }
