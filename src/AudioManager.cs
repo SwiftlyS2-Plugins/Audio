@@ -7,13 +7,12 @@ namespace Audio;
 public class AudioManager : IDisposable {
   private List<AudioChannel> Channels { get; set; } = new();
 
-  private OpusEncoder[] Encoders { get; set; } = new OpusEncoder[64];
-  private short[] CurrentFrame { get; set; } = new short[480];
-  private byte[] OpusBuffer { get; set; } = new byte[1024];
-  private OpusEncoder Encoder { get; set; } = new(48000, 1, OpusPredefinedValues.OPUS_APPLICATION_AUDIO);
+  private OpusEncoder[] Encoders { get; set; } = new OpusEncoder[AudioConstants.MaxPlayers];
+  private short[] CurrentFrame { get; set; } = new short[AudioConstants.FrameSize];
+  private byte[] OpusBuffer { get; set; } = new byte[AudioConstants.OpusBufferSize];
   public AudioManager() {
-    for (int i = 0; i < 64; i++) {
-      Encoders[i] = new OpusEncoder(48000, 1, OpusPredefinedValues.OPUS_APPLICATION_AUDIO);
+    for (int i = 0; i < AudioConstants.MaxPlayers; i++) {
+      Encoders[i] = new OpusEncoder(AudioConstants.SampleRate, AudioConstants.Channels, OpusPredefinedValues.OPUS_APPLICATION_AUDIO);
     }
   }
 
@@ -53,7 +52,7 @@ public class AudioManager : IDisposable {
   public ReadOnlySpan<byte> GetNextFrameAsOpus(int slot) {
     ClearOpusBuffer();
     GetNextFrame(slot);
-    var encoded = Encoders[slot].Encode(CurrentFrame.AsSpan(), 480, OpusBuffer.AsSpan(), OpusBuffer.Length);
+    var encoded = Encoders[slot].Encode(CurrentFrame.AsSpan(), AudioConstants.FrameSize, OpusBuffer.AsSpan(), OpusBuffer.Length);
     return OpusBuffer.AsSpan(0, encoded);
   } 
 

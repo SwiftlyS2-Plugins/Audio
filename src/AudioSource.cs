@@ -16,8 +16,8 @@ public class AudioSource : IAudioSource {
   private static void WithOpusPcmOption(FFMpegArgumentOptions options) {
     options
       .WithAudioCodec("pcm_s16le")
-      .WithAudioSamplingRate(48000)
-      .WithCustomArgument("-ac 1")
+      .WithAudioSamplingRate(AudioConstants.SampleRate)
+      .WithCustomArgument($"-ac {AudioConstants.Channels}")
       .ForceFormat("s16le");
   }
 
@@ -100,11 +100,11 @@ public class AudioSource : IAudioSource {
     return new AudioSource(outputStream.ToArray());
   }
   public bool HasFrame(int cursor) {
-    return cursor * 960 < PcmData.Length;
+    return cursor * AudioConstants.FrameSizeInBytes < PcmData.Length;
   }
   public ReadOnlySpan<short> GetFrame(int cursor) {
-    var min = cursor * 960;
-    var max = Math.Min((cursor + 1) * 960, PcmData.Length);
+    var min = cursor * AudioConstants.FrameSizeInBytes;
+    var max = Math.Min((cursor + 1) * AudioConstants.FrameSizeInBytes, PcmData.Length);
     return MemoryMarshal.Cast<byte, short>(PcmData.AsSpan(min, max - min));
   }
 

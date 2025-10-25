@@ -6,9 +6,9 @@ namespace Audio;
 public class AudioChannel : IAudioChannel, IDisposable {
   public string Id { get; set; }
   private IAudioSource? Source { get; set; }
-  private int[] Cursors { get; set; } = new int[64];
-  public float[] Volume { get; set;} = new float[64];
-  public bool[] IsPlaying { get; private set; } = new bool[64];
+  private int[] Cursors { get; set; } = new int[AudioConstants.MaxPlayers];
+  public float[] Volume { get; set;} = new float[AudioConstants.MaxPlayers];
+  public bool[] IsPlaying { get; private set; } = new bool[AudioConstants.MaxPlayers];
 
   private bool _disposed = false;
 
@@ -20,7 +20,7 @@ public class AudioChannel : IAudioChannel, IDisposable {
 
     public AudioChannel(string id) {
     Id = id;
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < AudioConstants.MaxPlayers; i++) {
       Cursors[i] = 0;
       Volume[i] = 1.0f;
       IsPlaying[i] = false;

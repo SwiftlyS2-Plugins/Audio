@@ -11,14 +11,14 @@ public class AudioMainloop : IDisposable {
   private PeriodicTimer timer;
   private Task audioTask;
   private uint sectionNumber;
-  private byte[] buffer = new byte[2048];
+  private byte[] buffer = new byte[AudioConstants.MainloopBufferSize];
 
   public AudioMainloop(ISwiftlyCore Core, AudioManager audioManager) {
     this.audioManager = audioManager;
     this.Core = Core;
     cancellationTokenSource = new CancellationTokenSource();
     audioTask = Task.Run(() => StartAudio(cancellationTokenSource.Token));
-    timer = new PeriodicTimer(TimeSpan.FromMilliseconds(30));
+    timer = new PeriodicTimer(TimeSpan.FromMilliseconds(AudioConstants.PacketIntervalMilliseconds));
   }
 
   public void Dispose() {
@@ -35,7 +35,7 @@ public class AudioMainloop : IDisposable {
       {
         return;
       }
-      for (int i = 0; i < 64; i++)
+      for (int i = 0; i < AudioConstants.MaxPlayers; i++)
       {
         if (Core.PlayerManager.GetPlayer(i) is not { IsValid: true }) continue;
         if (audioManager.HasNextFrame(i))
@@ -47,10 +47,10 @@ public class AudioMainloop : IDisposable {
             msg.Tick = (uint)Core.Engine.TickCount;
             int offset = 0;
             msg.Audio.SequenceBytes = 0;
-            msg.Audio.SampleRate = 48000;
+            msg.Audio.SampleRate = AudioConstants.SampleRate;
             msg.Audio.Format = VoiceDataFormat_t.VOICEDATA_FORMAT_OPUS;
             msg.Audio.SectionNumber = sectionNumber;
-            for (int j = 0; j < 3; j++)
+            for (int j = 0; j < AudioConstants.MaxPacketCount; j++)
             {
               if (!audioManager.HasNextFrame(i)) break;
               var data = audioManager.GetNextFrameAsOpus(i);
