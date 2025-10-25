@@ -59,12 +59,16 @@ public class AudioChannel : IAudioChannel, IDisposable {
 
   public void Play(int slot) {
     ThrowIfDisposed();
-    IsPaused[slot] = false;
+    Resume(slot);
+    Unmute(slot);
+    Reset(slot);
   }
 
   public void PlayToAll() {
     ThrowIfDisposed();
-    Array.Fill(IsPaused, false);
+    ResumeAll();
+    UnmuteAll();
+    ResetAll();
   }
 
   public void Pause(int slot) {
