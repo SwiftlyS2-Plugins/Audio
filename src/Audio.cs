@@ -1,22 +1,7 @@
 using SwiftlyS2.Shared.Plugins;
 using SwiftlyS2.Shared;
-using OpusSharp.Core;
-using SwiftlyS2.Shared.Commands;
-using FFMpegCore;
-using FFMpegCore.Pipes;
-using FFMpegCore.Enums;
-using FFMpegCore.Arguments;
-using Microsoft.Extensions.Logging;
-using SwiftlyS2.Shared.ProtobufDefinitions;
-using System.Linq;
-using SwiftlyS2.Shared.Natives;
-using SwiftlyS2.Shared.Sounds;
-using SwiftlyS2.Shared.Misc;
-using System.Diagnostics;
-using System.Buffers;
 using Microsoft.Extensions.DependencyInjection;
 using AudioApi;
-using System.Windows.Input;
 using Microsoft.Extensions.Configuration;
 
 namespace Audio;
@@ -65,14 +50,23 @@ public partial class Audio(ISwiftlyCore core) : BasePlugin(core) {
     interfaceManager.AddSharedInterface<IAudioApi, AudioApi>("audio", ServiceProvider!.GetRequiredService<AudioApi>());
   }
 
+    public override void UseSharedInterface(IInterfaceManager interfaceManager)
+    {
+        var api = interfaceManager.GetSharedInterface<IAudioApi>("audio");
+        var channel = api.UseChannel("test");
+        channel.SetSource(api.DecodeFromFile("E:/p.mp3"));
+        channel.SetVolumeToAll(0.5f);
+        channel.PlayToAll();
+    }
 
-  // [Command("test3")]
-  // public void Test3(ICommandContext context) {
-  //   var api = ServiceProvider!.GetRequiredService<AudioApi>();
-  //   var channel = api.UseChannel("test");
-  //   channel.SetSource(api.DecodeFromFile("E:/p.mp3"));
-  //   channel.SetVolumeToAll(0.5f);
-  //   channel.PlayToAll();
-  // }
+
+    // [Command("test3")]
+    // public void Test3(ICommandContext context) {
+    //   var api = ServiceProvider!.GetRequiredService<AudioApi>();
+    //   var channel = api.UseChannel("test");
+    //   channel.SetSource(api.DecodeFromFile("E:/p.mp3"));
+    //   channel.SetVolumeToAll(0.5f);
+    //   channel.PlayToAll();
+    // }
 
 } 

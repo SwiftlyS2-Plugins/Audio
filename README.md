@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://pan.samyyc.dev/s/VYmMXE" />
   <h2><strong>Audio</strong></h2>
-  <h3>No description.</h3>
+  <h3>A high performance VoIP audio lib for swiftlys2.</h3>
 </div>
 
 <p align="center">
@@ -11,13 +11,29 @@
   <img src="https://img.shields.io/github/license/SwiftlyS2-Plugins/Audio" alt="License">
 </p>
 
-## Building
+## API Example
 
-- Open the project in your preferred .NET IDE (e.g., Visual Studio, Rider, VS Code).
-- Build the project. The output DLL and resources will be placed in the `build/` directory.
-- T he publish process will also create a zip file for easy distribution.
+```csharp
+public override void UseSharedInterface(IInterfaceManager interfaceManager)
+{
+  // get api, you can store it in other place, but remember to reset it every time this method is called
+  IAudioApi api = interfaceManager.GetSharedInterface<IAudioApi>("audio");
 
-## Publishing
+  // get a channel for your plugin
+  IAudioChannel channel = api.UseChannel("test");
 
-- Use the `dotnet publish -c Release` command to build and package your plugin.
-- Distribute the generated zip file or the contents of the `build/publish` directory.
+  /// decode source from mp3 file
+  IAudioSource source = api.DecodeFromFile("E:/p.mp3");
+
+  // assign source to the channel
+  channel.SetSource(source);
+
+  // adjust volume
+  channel.SetVolumeToAll(0.5f);
+
+  // play
+  channel.PlayToAll();
+}
+```
+
+To see more api, please check [AudioApi](https://github.com/SwiftlyS2-Plugins/Audio/tree/main/AudioApi)

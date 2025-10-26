@@ -1,9 +1,7 @@
-using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpusSharp.Core;
 using OpusSharp.Core.Extensions;
-using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace Audio;
 

@@ -1,10 +1,6 @@
-using System.Diagnostics;
-using System.Linq.Expressions;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.ProtobufDefinitions;
-using SwiftlyS2.Shared.Sounds;
-
 namespace Audio;
 
 public class AudioMainloop : IDisposable {
