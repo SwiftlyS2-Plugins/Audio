@@ -11,6 +11,27 @@
   <img src="https://img.shields.io/github/license/SwiftlyS2-Plugins/Audio" alt="License">
 </p>
 
+## Get Started
+
+### Download API
+
+Download AudioApi.dll from the latest release to your project.
+
+### Download Plugin
+
+Download the plugin from the latest release and install it on your server.
+
+### Include API In Your Project
+
+Add following lines to your `.csproj` file:
+
+```xml
+<Reference Include="AudioApi">
+  <HintPath>AudioApi.dll</HintPath>
+</Reference>
+```
+
+
 ## API Example
 
 ```csharp
