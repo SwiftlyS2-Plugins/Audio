@@ -1,5 +1,8 @@
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OpusSharp.Core;
+using OpusSharp.Core.Extensions;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace Audio;
@@ -10,9 +13,39 @@ public class AudioManager : IDisposable {
   private OpusEncoder[] Encoders { get; set; } = new OpusEncoder[AudioConstants.MaxPlayers];
   private short[] CurrentFrame { get; set; } = new short[AudioConstants.FrameSize];
   private byte[] OpusBuffer { get; set; } = new byte[AudioConstants.OpusBufferSize];
-  public AudioManager() {
+  private IOptionsMonitor<AudioConfig>? Config { get; set; }
+  private ILogger<AudioManager> Logger { get; set; }
+  public AudioManager(IOptionsMonitor<AudioConfig>? config, ILogger<AudioManager> logger) {
+    Logger = logger;
+    if (config == null) {
+      ConfigureOpusEncoder(new AudioConfig());
+      return;
+    }
+    Config = config;
+    ConfigureOpusEncoder(Config.CurrentValue);
+    Config.OnChange(ConfigureOpusEncoder);
+  }
+
+
+
+  public void ConfigureOpusEncoder(AudioConfig config) {
+    Logger.LogInformation("Configuring Opus encoder with complexity = {Complexity}", config.OpusComplexity);
     for (int i = 0; i < AudioConstants.MaxPlayers; i++) {
-      Encoders[i] = new OpusEncoder(AudioConstants.SampleRate, AudioConstants.Channels, OpusPredefinedValues.OPUS_APPLICATION_AUDIO);
+      if (Encoders[i] == null) {
+        Encoders[i] = new OpusEncoder(AudioConstants.SampleRate, AudioConstants.Channels, OpusPredefinedValues.OPUS_APPLICATION_AUDIO);
+      }
+      Encoders[i].SetComplexity(config.OpusComplexity);
+    }
+  }
+
+  public void NotifyOpusReset(int slot) {
+    Encoders[slot].Reset();
+  }
+
+  public void NotifyOpusResetAll()
+  {
+    foreach (var encoder in Encoders) {
+      encoder.Reset();
     }
   }
 
@@ -30,7 +63,7 @@ public class AudioManager : IDisposable {
     if (Channels.Any(channel => channel.Id == id)) {
       return Channels.First(channel => channel.Id == id);
     }
-    var newChannel = new AudioChannel(id);
+    var newChannel = new AudioChannel(id, this);
     Channels.Add(newChannel);
     return newChannel;
   }
@@ -39,11 +72,16 @@ public class AudioManager : IDisposable {
     return Channels.Any(channel => channel.HasNextFrame(slot));
   }
 
+  public void DoLoop() {
+    foreach (var channel in Channels) {
+      channel.DoLoop();
+    }
+  }
+
   public ReadOnlySpan<short> GetNextFrame(int slot) {
     ResetCurrentFrame();
     foreach (var channel in Channels)
     {
-      channel.ProgressIfMuted(slot);
       if (channel.HasNextFrame(slot)) {
         MixFrames(CurrentFrame.AsSpan(), channel.GetNextFrame(slot), channel.Volume[slot]);
       }

@@ -41,7 +41,11 @@ public class AudioMainloop : IDisposable {
         {
           return;
         }
+        Core.Profiler.StartRecording("AudioMainloop");
+        audioManager.DoLoop();
         foreach (var player in Core.PlayerManager.GetAllPlayers())
+        // var sw = Stopwatch.StartNew();
+        // for (int i = 0; i < AudioConstants.MaxPlayers; i++)
         {
           var i = player.PlayerID;
           if (audioManager.HasNextFrame(i))
@@ -71,6 +75,8 @@ public class AudioMainloop : IDisposable {
             });
           }
         }
+        Core.Profiler.StopRecording("AudioMainloop");
+        // Console.WriteLine($"Time taken: {sw.ElapsedMilliseconds}ms");
       }
     }
     catch (Exception e)

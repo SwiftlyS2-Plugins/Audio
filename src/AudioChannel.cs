@@ -1,4 +1,5 @@
 using AudioApi;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.ProtobufDefinitions;
 
 namespace Audio;
@@ -11,6 +12,11 @@ public class AudioChannel : IAudioChannel, IDisposable {
   public bool[] IsPaused { get; private set; } = new bool[AudioConstants.MaxPlayers];
   public bool[] IsMuted { get; private set; } = new bool[AudioConstants.MaxPlayers];
 
+  [SwiftlyInject]
+  private static ISwiftlyCore Core { get; set; } = null!;
+
+  private AudioManager AudioManager { get; set; }
+
   private bool _disposed = false;
 
   private void ThrowIfDisposed() {
@@ -19,7 +25,7 @@ public class AudioChannel : IAudioChannel, IDisposable {
     }
   }
 
-  public AudioChannel(string id) {
+  public AudioChannel(string id, AudioManager audioManager) {
     Id = id;
     for (int i = 0; i < AudioConstants.MaxPlayers; i++) {
       Cursors[i] = 0;
@@ -27,6 +33,7 @@ public class AudioChannel : IAudioChannel, IDisposable {
       IsPaused[i] = true;
       IsMuted[i] = false;
     }
+    AudioManager = audioManager;
   }
 
   public void Dispose() {
@@ -37,6 +44,7 @@ public class AudioChannel : IAudioChannel, IDisposable {
   public void SetSource(IAudioSource source) {
     ThrowIfDisposed();
     Source = source;
+    AudioManager.NotifyOpusResetAll();
   }
 
   public bool HasNextFrame(int slot)
@@ -50,25 +58,28 @@ public class AudioChannel : IAudioChannel, IDisposable {
     return Source!.GetFrame(Cursors[slot]++);
   }
 
-  public void ProgressIfMuted(int slot) {
+  public void DoLoop() {
     ThrowIfDisposed();
-    if (IsMuted[slot]) {
-      Cursors[slot]++;
+    for (int i = 0; i < AudioConstants.MaxPlayers; i++) {
+      // the frame will not be get for these players
+      if (!Core.PlayerManager.IsPlayerOnline(i) || (!IsPaused[i] && IsMuted[i])) {
+        Cursors[i] += AudioConstants.MaxPacketCount;
+      }
     }
   }
 
   public void Play(int slot) {
     ThrowIfDisposed();
+    Reset(slot);
     Resume(slot);
     Unmute(slot);
-    Reset(slot);
   }
 
   public void PlayToAll() {
     ThrowIfDisposed();
+    ResetAll();
     ResumeAll();
     UnmuteAll();
-    ResetAll();
   }
 
   public void Pause(int slot) {
@@ -94,11 +105,13 @@ public class AudioChannel : IAudioChannel, IDisposable {
   public void Reset(int slot) {
     ThrowIfDisposed();
     Cursors[slot] = 0;
+    AudioManager.NotifyOpusReset(slot);
   }
 
   public void ResetAll() {
     ThrowIfDisposed();
     Array.Fill(Cursors, 0);
+    AudioManager.NotifyOpusResetAll();
   }
 
   public float GetVolume(int playerId)

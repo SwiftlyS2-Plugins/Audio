@@ -3,17 +3,19 @@ using System.Diagnostics;
 using Audio;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Benchmarker;
 [MemoryDiagnoser]
 public class EncoderBenchmark
 {
-  private AudioManager audioManager = new();
+  private AudioManager? audioManager;
 
   [GlobalSetup]
   public void Setup()
   {
-    audioManager = new();
+    audioManager = new(null, LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<AudioManager>());
     var source = AudioSource.DecodeFromFile("E:/p.mp3");
     var source2 = AudioSource.DecodeFromFile("E:/p.mp3");
     var track1 = audioManager.UseChannel("track1");
