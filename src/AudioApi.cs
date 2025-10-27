@@ -21,9 +21,19 @@ public class AudioApi : IAudioApi, IDisposable {
     _disposed = true;
   }
 
-  public IAudioChannel UseChannel(string id) {
+  public IAudioChannelController UseChannel(string id) {
     ThrowIfDisposed();
     return AudioManager.UseChannel(id);
+  }
+
+  public void AddCustomChannel(IAudioChannel channel) {
+    ThrowIfDisposed();
+    AudioManager.AddCustomChannel(channel);
+  }
+
+  public void RemoveCustomChannel(IAudioChannel channel) {
+    ThrowIfDisposed();
+    AudioManager.RemoveCustomChannel(channel);
   }
 
   public IAudioSource Decode(byte[] data)

@@ -41,19 +41,19 @@ public override void UseSharedInterface(IInterfaceManager interfaceManager)
   IAudioApi api = interfaceManager.GetSharedInterface<IAudioApi>("audio");
 
   // get a channel for your plugin
-  IAudioChannel channel = api.UseChannel("test");
+  IAudioChannelController controller = api.UseChannel("test");
 
   /// decode source from mp3 file
   IAudioSource source = api.DecodeFromFile("E:/p.mp3");
 
   // assign source to the channel
-  channel.SetSource(source);
+  controller.SetSource(source);
 
   // adjust volume
-  channel.SetVolumeToAll(0.5f);
+  controller.SetVolumeToAll(0.5f);
 
   // play
-  channel.PlayToAll();
+  controller.PlayToAll();
 }
 ```
 

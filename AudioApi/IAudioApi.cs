@@ -11,8 +11,23 @@ public interface IAudioApi {
   /// If the channel does not exist, it will be created.
   /// </summary>
   /// <param name="id">The id of the channel to create. </param>
-  /// <returns>The channel. </returns>
-  IAudioChannel UseChannel(string id);
+  /// <returns>The controller of the channel. </returns>
+  IAudioChannelController UseChannel(string id);
+
+
+  /// <summary>
+  /// Add a custom channel to the API.
+  /// The channel will be used to send audio data to the players.
+  /// </summary>
+  /// <param name="channel">The channel to add. </param>
+  void AddCustomChannel(IAudioChannel channel);
+
+  /// <summary>
+  /// Remove a custom channel from the API.
+  /// The channel will no longer be used to send audio data to the players.
+  /// </summary>
+  /// <param name="channel">The channel to remove. </param>
+  void RemoveCustomChannel(IAudioChannel channel);
 
   /// <summary>
   /// Get a source with the given data synchronously.

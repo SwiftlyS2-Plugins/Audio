@@ -3,12 +3,13 @@ using SwiftlyS2.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using AudioApi;
 using Microsoft.Extensions.Configuration;
+using SwiftlyS2.Shared.Commands;
 
 namespace Audio;
 
 [PluginMetadata(
   Id = "Audio", 
-  Version = "0.1.0", 
+  Version = "0.2.0", 
   Name = "Audio", 
   Author = "samyyc", 
   Description = "A high performance VoIP audio lib for swiftlys2."
@@ -37,7 +38,19 @@ public partial class Audio(ISwiftlyCore core) : BasePlugin(core) {
 
     ServiceProvider = collection.BuildServiceProvider();
 
-    ServiceProvider.GetRequiredService<AudioMainloop>();
+    var mainloop = ServiceProvider.GetRequiredService<AudioMainloop>();
+
+    if (hotReload) {
+      mainloop.IsRunning = true;
+    }
+
+    Core.Event.OnMapLoad += (map) => {
+      mainloop.IsRunning = true;
+    };
+
+    Core.Event.OnMapUnload += (map) => {
+      mainloop.IsRunning = false;
+    };
   }
 
   public override void Unload()
@@ -60,13 +73,14 @@ public partial class Audio(ISwiftlyCore core) : BasePlugin(core) {
     // }
 
 
-    // [Command("test3")]
-    // public void Test3(ICommandContext context) {
-    //   var api = ServiceProvider!.GetRequiredService<AudioApi>();
-    //   var channel = api.UseChannel("test");
-    //   channel.SetSource(api.DecodeFromFile("E:/p.mp3"));
-    //   channel.SetVolumeToAll(0.5f);
-    //   channel.PlayToAll();
-    // }
+    [Command("test3")]
+    public void Test3(ICommandContext context) {
+      var api = ServiceProvider!.GetRequiredService<AudioApi>();
+      var channel = api.UseChannel("test");
+      channel.SetSource(api.DecodeFromFile("E:/p.mp3"));
+
+      channel.SetVolumeToAll(1.2f);
+      channel.PlayToAll();
+    }
 
 } 

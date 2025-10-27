@@ -33,9 +33,8 @@ public class EncoderBenchmark
   {
     for (int i = 0; i < 64; i++)
     {
-      audioManager.GetNextFrameAsOpus(i);
-      audioManager.GetNextFrameAsOpus(i);
-      audioManager.GetNextFrameAsOpus(i);
+      audioManager.GetFrameAsOpus(i, new byte[AudioConstants.MainloopBufferSize]);
+      audioManager.GetFrameAsOpus(i, new byte[AudioConstants.MainloopBufferSize]);
 
     }
   }

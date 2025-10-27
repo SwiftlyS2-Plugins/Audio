@@ -4,7 +4,7 @@ using SwiftlyS2.Shared.ProtobufDefinitions;
 
 namespace Audio;
 
-public class AudioChannel : IAudioChannel, IDisposable {
+public class AudioChannel : IAudioChannelController, IAudioChannel, IDisposable {
   public string Id { get; set; }
   private IAudioSource? Source { get; set; }
   private int[] Cursors { get; set; } = new int[AudioConstants.MaxPlayers];
@@ -15,9 +15,9 @@ public class AudioChannel : IAudioChannel, IDisposable {
   [SwiftlyInject]
   private static ISwiftlyCore Core { get; set; } = null!;
 
-  private AudioManager AudioManager { get; set; }
-
   private bool _disposed = false;
+
+  public event Action<int> OnOpusResetRequested;
 
   private void ThrowIfDisposed() {
     if (_disposed) {
@@ -25,7 +25,7 @@ public class AudioChannel : IAudioChannel, IDisposable {
     }
   }
 
-  public AudioChannel(string id, AudioManager audioManager) {
+  public AudioChannel(string id) {
     Id = id;
     for (int i = 0; i < AudioConstants.MaxPlayers; i++) {
       Cursors[i] = 0;
@@ -33,7 +33,6 @@ public class AudioChannel : IAudioChannel, IDisposable {
       IsPaused[i] = true;
       IsMuted[i] = false;
     }
-    AudioManager = audioManager;
   }
 
   public void Dispose() {
@@ -44,26 +43,25 @@ public class AudioChannel : IAudioChannel, IDisposable {
   public void SetSource(IAudioSource source) {
     ThrowIfDisposed();
     Source = source;
-    AudioManager.NotifyOpusResetAll();
+    OnOpusResetRequested?.Invoke(-1);
   }
 
-  public bool HasNextFrame(int slot)
+  public bool HasFrame(int slot)
   {
     ThrowIfDisposed();
-    return Source != null && !IsPaused[slot] && !IsMuted[slot] && Source.HasFrame(Cursors[slot]+1);
+    return Source != null && !IsPaused[slot] && !IsMuted[slot] && Source.HasFrame(Cursors[slot]);
   }
 
-  public ReadOnlySpan<short> GetNextFrame(int slot) {
+  public ReadOnlySpan<short> GetFrame(int slot) {
     ThrowIfDisposed();
-    return Source!.GetFrame(Cursors[slot]++);
+    return Source!.GetFrame(Cursors[slot]);
   }
 
-  public void DoLoop() {
+  public void NextFrame() {
     ThrowIfDisposed();
     for (int i = 0; i < AudioConstants.MaxPlayers; i++) {
-      // the frame will not be get for these players
-      if (!Core.PlayerManager.IsPlayerOnline(i) || (!IsPaused[i] && IsMuted[i])) {
-        Cursors[i] += AudioConstants.MaxPacketCount;
+      if (!IsPaused[i]) {
+        Cursors[i] += 1;
       }
     }
   }
@@ -80,6 +78,18 @@ public class AudioChannel : IAudioChannel, IDisposable {
     ResetAll();
     ResumeAll();
     UnmuteAll();
+  }
+
+  public void Stop(int slot) {
+    ThrowIfDisposed();
+    Pause(slot);
+    Reset(slot);
+  }
+
+  public void StopAll() {
+    ThrowIfDisposed();
+    PauseAll();
+    ResetAll();
   }
 
   public void Pause(int slot) {
@@ -105,13 +115,13 @@ public class AudioChannel : IAudioChannel, IDisposable {
   public void Reset(int slot) {
     ThrowIfDisposed();
     Cursors[slot] = 0;
-    AudioManager.NotifyOpusReset(slot);
+    OnOpusResetRequested?.Invoke(slot);
   }
 
   public void ResetAll() {
     ThrowIfDisposed();
     Array.Fill(Cursors, 0);
-    AudioManager.NotifyOpusResetAll();
+    OnOpusResetRequested?.Invoke(-1);
   }
 
   public float GetVolume(int playerId)
