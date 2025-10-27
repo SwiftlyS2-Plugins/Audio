@@ -73,14 +73,14 @@ public partial class Audio(ISwiftlyCore core) : BasePlugin(core) {
     // }
 
 
-    [Command("test3")]
-    public void Test3(ICommandContext context) {
-      var api = ServiceProvider!.GetRequiredService<AudioApi>();
-      var channel = api.UseChannel("test");
-      channel.SetSource(api.DecodeFromFile("E:/p.mp3"));
+    // [Command("test3")]
+    // public void Test3(ICommandContext context) {
+    //   var api = ServiceProvider!.GetRequiredService<AudioApi>();
+    //   var channel = api.UseChannel("test");
+    //   channel.SetSource(api.DecodeFromFile("E:/p.mp3"));
 
-      channel.SetVolumeToAll(1.2f);
-      channel.PlayToAll();
-    }
+    //   channel.SetVolumeToAll(1.2f);
+    //   channel.PlayToAll();
+    // }
 
 } 
