@@ -13,10 +13,6 @@
 
 ## Get Started
 
-### Download API
-
-Download AudioApi.dll from the latest release to your project.
-
 ### Download Plugin
 
 Download the plugin from the latest release and install it on your server.
@@ -26,11 +22,22 @@ Download the plugin from the latest release and install it on your server.
 Add following lines to your `.csproj` file:
 
 ```xml
-<Reference Include="AudioApi">
-  <HintPath>AudioApi.dll</HintPath>
-</Reference>
+  <PackageReference Include="SwiftlyS2.Plugin.Audio.API" Version="1.0.0" />
 ```
 
+## Configuration
+
+You can find the configuration file in `addons/swiftlys2/configs/plugins/Audio/config.jsonc` after the plugin has properly started up once.
+
+The configuration keys are as follows.
+
+### `OpusComplexity`
+
+Control the complexity of opus encoder, ranging from 0 to 10 ( 10 by default ).
+
+The higher the complexity is, the better the encoding quality but the slower the encoding speed.
+
+You can try to lower this if you experience audio lag.
 
 ## API Example
 
