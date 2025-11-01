@@ -22,13 +22,12 @@ using Microsoft.Extensions.DependencyInjection;
 using AudioApi;
 using Microsoft.Extensions.Configuration;
 using SwiftlyS2.Shared.Commands;
-using System.Diagnostics;
 
 namespace Audio;
 
 [PluginMetadata(
   Id = "Audio", 
-  Version = "0.3.1", 
+  Version = "0.4.0", 
   Name = "Audio", 
   Author = "samyyc", 
   Description = "A high performance VoIP audio lib for swiftlys2."
@@ -51,8 +50,10 @@ public partial class Audio(ISwiftlyCore core) : BasePlugin(core) {
       .AddSwiftly(Core)
       .AddSingleton<AudioManager>()
       .AddSingleton<AudioApi>()
-      .AddSingleton<AudioMainloop>()
-      .AddOptionsWithValidateOnStart<AudioConfig>()
+      .AddSingleton<AudioMainloop>();
+    
+    collection
+      .AddOptions<AudioConfig>()
       .BindConfiguration("Main");
 
     ServiceProvider = collection.BuildServiceProvider();
@@ -92,14 +93,17 @@ public partial class Audio(ISwiftlyCore core) : BasePlugin(core) {
     // }
 
 
-    // [Command("test3")]
+    // [Command("test4")]
     // public void Test3(ICommandContext context) {
     //   var api = ServiceProvider!.GetRequiredService<AudioApi>();
     //   var channel = api.UseChannel("test");
 
-    //   Task.Run(async () => {
+    // Console.WriteLine("Source decoded");
+    // Task.Run(async () =>
+    //   {
     //     var task = api.DecodeFromFileAsync("E:/p.mp3");
     //     var source = await task;
+    //     Console.WriteLine("Source decoded");
     //     channel.SetSource(source);
     //     channel.PlayToAll();
     //   });

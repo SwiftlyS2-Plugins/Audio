@@ -16,11 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+using Audio.Opus;
 using AudioApi;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OpusSharp.Core;
-using OpusSharp.Core.Extensions;
 using SwiftlyS2.Shared.ProtobufDefinitions;
 
 namespace Audio;
@@ -48,12 +47,17 @@ public class AudioManager : IDisposable {
 
 
   public void ConfigureOpusEncoder(AudioConfig config) {
-    Logger.LogInformation("Configuring Opus encoder with complexity = {Complexity}.", config.OpusComplexity);
-    for (int i = 0; i < AudioConstants.MaxPlayers; i++) {
-      if (Encoders[i] == null) {
-        Encoders[i] = new OpusEncoder(AudioConstants.SampleRate, AudioConstants.Channels, OpusPredefinedValues.OPUS_APPLICATION_AUDIO);
+    try {
+      Logger.LogInformation("Configuring Opus encoder with complexity = {Complexity}.", config.OpusComplexity);
+      for (int i = 0; i < AudioConstants.MaxPlayers; i++) {
+        if (Encoders[i] == null) {
+          Encoders[i] = new OpusEncoder(AudioConstants.SampleRate, AudioConstants.Channels, OpusApplication.OPUS_APPLICATION_AUDIO);
+        }
+        Encoders[i].SetComplexity(config.OpusComplexity);
       }
-      Encoders[i].SetComplexity(config.OpusComplexity);
+    }
+    catch (Exception e) {
+      Logger.LogError(e, "Error configuring Opus encoder.");
     }
   }
 
@@ -131,9 +135,9 @@ public class AudioManager : IDisposable {
     return CurrentFrame.AsSpan();
   }
 
-  public int GetFrameAsOpus(int slot, Span<byte> outBuffer) {
+  public int GetFrameAsOpus(int slot, Span<byte> outBuffer, int outputLength) {
     GetFrame(slot);
-    var encoded = Encoders[slot].Encode(CurrentFrame.AsSpan(), AudioConstants.FrameSize, outBuffer, outBuffer.Length);
+    var encoded = Encoders[slot].Encode(CurrentFrame.AsSpan(), AudioConstants.FrameSize, outBuffer, outputLength);
     return encoded;
   } 
 

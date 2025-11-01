@@ -71,8 +71,6 @@ public class AudioMainloop : IDisposable {
     var msg = Protobufs[playerId];
     msg.Audio.NumPackets = 0;
     msg.Audio.PacketOffsets.Clear();
-    Offsets[playerId] = 0;
-    Buffer[playerId].AsSpan().Clear();
   }
 
   public async void StartAudio(CancellationToken cancellationToken)
@@ -87,8 +85,6 @@ public class AudioMainloop : IDisposable {
         bool[] hasFrame = new bool[AudioConstants.MaxPlayers];
         if (!IsRunning) continue;
         Core.Profiler.StartRecording("AudioMainloop");
-        // foreach (var player in Core.PlayerManager.GetAllPlayers())
-        // var sw = Stopwatch.StartNew();
         var allPlayers = Core.PlayerManager.GetAllPlayers();
         for (int j = 0; j < AudioConstants.MaxPacketCount; j++)
         {
@@ -97,7 +93,7 @@ public class AudioMainloop : IDisposable {
             if (player is not { IsValid: true }) continue;
             var i = player.PlayerID;
             if (!audioManager.HasFrame(i)) continue;
-            var length = audioManager.GetFrameAsOpus(i, Buffer[i].AsSpan(Offsets[i]));
+            var length = audioManager.GetFrameAsOpus(i, Buffer[i].AsSpan(Offsets[i]), AudioConstants.MainloopBufferSize);
             Offsets[i] += length;
             Protobufs[i].Audio.NumPackets += 1;
             Protobufs[i].Audio.PacketOffsets.Add((uint)Offsets[i]);
@@ -115,6 +111,8 @@ public class AudioMainloop : IDisposable {
           Protobufs[i].Tick = (uint)Core.Engine.TickCount;
           Protobufs[i].Audio.SectionNumber = sectionNumber;
           Protobufs[i].Audio.VoiceData = Buffer[i].AsSpan(0, Offsets[i]).ToArray();
+          Offsets[i] = 0;
+          Buffer[i].AsSpan().Clear();
 
           Core.Scheduler.NextTick(() =>
           {
