@@ -39,6 +39,14 @@ The higher the complexity is, the better the encoding quality but the slower the
 
 You can try to lower this if you experience audio lag.
 
+### `UseFFMpeg`
+
+Whether to use ffmpeg as the pcm decoder, set to `false` by default.
+
+Only enable this if you have correct ffmpeg executable installed and it exists in PATH.
+
+Otherwise the native rust pcm decoder will be used.
+
 ## API Example
 
 ```csharp
