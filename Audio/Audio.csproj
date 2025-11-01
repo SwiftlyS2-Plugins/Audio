@@ -16,19 +16,23 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" ExcludeAssets="runtime" PrivateAssets="all" /> 
-    <PackageReference Include="FFMpegCore" Version="5.2.0" />
+    <PackageReference Include="FFMpegCore" Version="5.2.0" /> 
     <PackageReference Include="OpusSharp.Core" Version="1.5.2.2" />
     <PackageReference Include="OpusSharp.Natives" Version="1.5.2.2" />
-    <PackageReference Include="SwiftlyS2.CS2" Version="0.2.32" ExcludeAssets="runtime" PrivateAssets="all" />
-    <ProjectReference Include="./AudioApi/AudioApi.csproj" />
+    <PackageReference Include="SwiftlyS2.CS2" Version="0.2.35" ExcludeAssets="runtime" PrivateAssets="all" />
+    <ProjectReference Include="../AudioApi/AudioApi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="runtimes/**/*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="resources/**/*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Remove="Benchmarker/**/*" />
-    <Compile Remove="AudioApi/**/*" />
   </ItemGroup>
 
   <Target Name="CreateZip" AfterTargets="Publish">

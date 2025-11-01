@@ -1,0 +1,63 @@
+name: Build PCM Decoder
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    name: Build Linux (SteamOS SDK)
+    runs-on: ubuntu-latest
+    container:
+      image: registry.gitlab.steamos.cloud/steamrt/sniper/sdk
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          
+      - name: Rust version
+        run: |
+          . $HOME/.cargo/env
+          rustc --version
+          cargo --version
+
+      - name: Build release
+        run: |
+          . $HOME/.cargo/env
+          cd PCMDecoder
+          cargo build --release
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pcmdecoder-linux-x86_64
+          path: target/release/libpcmdecoder.so
+
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build release
+        run: |
+          cd PCMDecoder
+          cargo build --release
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pcmdecoder-windows-x86_64
+          path: |
+            target/release/pcmdecoder.dll

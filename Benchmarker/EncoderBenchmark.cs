@@ -18,6 +18,7 @@
  
 using System.Diagnostics;
 using Audio;
+using Audio.Decoders;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using Microsoft.Extensions.Logging;
@@ -25,18 +26,25 @@ using Microsoft.Extensions.Options;
 
 namespace Benchmarker;
 [MemoryDiagnoser]
+// set run times
 public class EncoderBenchmark
 {
   private AudioManager? audioManager;
 
+  private FFMpegDecoder ffmpegDecoder;
+  private NativeDecoder nativeDecoder;
+
   [GlobalSetup]
   public void Setup()
   {
+    var decoder = new FFMpegDecoder();
     audioManager = new(null, LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<AudioManager>());
-    var source = AudioSource.DecodeFromFile("E:/p.mp3");
-    var source2 = AudioSource.DecodeFromFile("E:/p.mp3");
+    var source = new AudioSource(decoder.DecodeFromFile("E:/p.mp3"));
+    var source2 = new AudioSource(decoder.DecodeFromFile("E:/p.mp3"));
     var track1 = audioManager.UseChannel("track1");
     var track2 = audioManager.UseChannel("track2");
+    ffmpegDecoder = new FFMpegDecoder();
+    nativeDecoder = new NativeDecoder();
     track1.ResetAll();
     track1.SetSource(source);
     track2.ResetAll();
@@ -44,15 +52,26 @@ public class EncoderBenchmark
     track1.PlayToAll();
     track2.PlayToAll();
   }
-  
-  [Benchmark]
-  public void Encode()
-  {
-    for (int i = 0; i < 64; i++)
-    {
-      audioManager.GetFrameAsOpus(i, new byte[AudioConstants.MainloopBufferSize]);
-      audioManager.GetFrameAsOpus(i, new byte[AudioConstants.MainloopBufferSize]);
 
-    }
+
+  [Benchmark]
+  public void FFMpegDecode()
+  {
+    ffmpegDecoder.DecodeFromFile("E:/p.mp3");
+  }
+
+  [Benchmark]
+  public void NativeDecode()
+  {
+    nativeDecoder.DecodeFromFile("E:/p.mp3");
+  // [Benchmark]
+  // public void Encode()
+  // {
+  //   for (int i = 0; i < 64; i++)
+  //   {
+  //     audioManager.GetFrameAsOpus(i, new byte[AudioConstants.MainloopBufferSize]);
+  //     audioManager.GetFrameAsOpus(i, new byte[AudioConstants.MainloopBufferSize]);
+
+  //   }
   }
 }

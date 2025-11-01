@@ -115,8 +115,13 @@ public class AudioMainloop : IDisposable {
           Protobufs[i].Tick = (uint)Core.Engine.TickCount;
           Protobufs[i].Audio.SectionNumber = sectionNumber;
           Protobufs[i].Audio.VoiceData = Buffer[i].AsSpan(0, Offsets[i]).ToArray();
-          Protobufs[i].Send();
-          Reset(i);
+
+          Core.Scheduler.NextTick(() =>
+          {
+            Protobufs[i].Send();
+            Reset(i);
+
+          });
         }
 
         Core.Profiler.StopRecording("AudioMainloop");

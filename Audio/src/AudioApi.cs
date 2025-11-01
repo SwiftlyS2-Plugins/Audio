@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+using Audio.Decoders;
 using AudioApi;
 
 namespace Audio;
@@ -24,6 +25,8 @@ public class AudioApi : IAudioApi, IDisposable {
 
   private AudioManager AudioManager { get; set; }
   private bool _disposed = false;
+
+  private IPcmDecoder Decoder { get => new NativeDecoder(); }
 
   private void ThrowIfDisposed() {
     if (_disposed) {
@@ -57,36 +60,36 @@ public class AudioApi : IAudioApi, IDisposable {
   public IAudioSource Decode(byte[] data)
   {
     ThrowIfDisposed();
-    return AudioSource.Decode(data);
+    return new AudioSource(Decoder.Decode(data));
   }
 
   public async Task<IAudioSource> DecodeAsync(byte[] data)
   {
     ThrowIfDisposed();
-    return await AudioSource.DecodeAsync(data);
+    return new AudioSource(await Decoder.DecodeAsync(data));
   }
 
   public IAudioSource DecodeFromFile(string path)
   {
     ThrowIfDisposed();
-    return AudioSource.DecodeFromFile(path);
+    return new AudioSource(Decoder.DecodeFromFile(path));
   }
 
   public async Task<IAudioSource> DecodeFromFileAsync(string path)
   {
     ThrowIfDisposed();
-    return await AudioSource.DecodeFromFileAsync(path);
+    return new AudioSource(await Decoder.DecodeFromFileAsync(path));
   }
 
   public IAudioSource DecodeFromUrl(Uri url)
   {
     ThrowIfDisposed();
-    return AudioSource.DecodeFromUrl(url);
+    return new AudioSource(Decoder.DecodeFromUrl(url));
   }
 
   public async Task<IAudioSource> DecodeFromUrlAsync(Uri url)
   {
     ThrowIfDisposed();
-    return await AudioSource.DecodeFromUrlAsync(url);
+    return new AudioSource(await Decoder.DecodeFromUrlAsync(url));
   }
 }

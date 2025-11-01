@@ -28,4 +28,12 @@ public class AudioConfig {
   /// </summary>
   public int OpusComplexity { get; set; } = 10;
 
+  /// <summary>
+  /// Whether to use FFMpeg to decode audio files.
+  /// If set to true, the audio files will be decoded using FFMpeg.
+  /// If set to false, the audio files will be decoded using the C# NAudio lib, which cost performance.
+  /// The default is false.
+  /// </summary>
+  public bool HasFFMpeg { get; set; } = false;
+
 }
