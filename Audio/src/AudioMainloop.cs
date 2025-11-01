@@ -114,12 +114,12 @@ public class AudioMainloop : IDisposable {
           Offsets[i] = 0;
           Buffer[i].AsSpan().Clear();
 
-          Core.Scheduler.NextTick(() =>
-          {
+          // Core.Scheduler.NextTick(() =>
+          // {
             Protobufs[i].Send();
             Reset(i);
 
-          });
+          // });
         }
 
         Core.Profiler.StopRecording("AudioMainloop");
