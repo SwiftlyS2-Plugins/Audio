@@ -1,0 +1,36 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Audio", "Audio\Audio.csproj", "{B7060262-855A-0840-B61B-CF4D17A3F2D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioApi", "AudioApi\AudioApi.csproj", "{59234C9C-8136-A579-0F1F-94550EE506A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarker", "Benchmarker\Benchmarker.csproj", "{455FC197-C346-C83B-1CB5-A1042C0835FB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B7060262-855A-0840-B61B-CF4D17A3F2D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7060262-855A-0840-B61B-CF4D17A3F2D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7060262-855A-0840-B61B-CF4D17A3F2D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7060262-855A-0840-B61B-CF4D17A3F2D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59234C9C-8136-A579-0F1F-94550EE506A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59234C9C-8136-A579-0F1F-94550EE506A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59234C9C-8136-A579-0F1F-94550EE506A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59234C9C-8136-A579-0F1F-94550EE506A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{455FC197-C346-C83B-1CB5-A1042C0835FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{455FC197-C346-C83B-1CB5-A1042C0835FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{455FC197-C346-C83B-1CB5-A1042C0835FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{455FC197-C346-C83B-1CB5-A1042C0835FB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DD97F218-9FCE-44A3-B8D5-E866055C097A}
+	EndGlobalSection
+EndGlobal

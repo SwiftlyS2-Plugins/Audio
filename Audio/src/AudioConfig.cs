@@ -31,9 +31,9 @@ public class AudioConfig {
   /// <summary>
   /// Whether to use FFMpeg to decode audio files.
   /// If set to true, the audio files will be decoded using FFMpeg.
-  /// If set to false, the audio files will be decoded using the C# NAudio lib, which cost performance.
+  /// If set to false, the audio files will be decode by native rust decoder.
   /// The default is false.
   /// </summary>
-  public bool HasFFMpeg { get; set; } = false;
+  public bool UseFFMpeg { get; set; } = false;
 
 }

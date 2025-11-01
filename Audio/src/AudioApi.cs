@@ -18,15 +18,17 @@
 
 using Audio.Decoders;
 using AudioApi;
+using Microsoft.Extensions.Options;
 
 namespace Audio;
 
 public class AudioApi : IAudioApi, IDisposable {
 
   private AudioManager AudioManager { get; set; }
+  private IOptionsMonitor<AudioConfig> Config { get; set; }
   private bool _disposed = false;
 
-  private IPcmDecoder Decoder { get => new NativeDecoder(); }
+  private IPcmDecoder Decoder { get => Config.CurrentValue.UseFFMpeg ? new FFMpegDecoder() : new NativeDecoder(); }
 
   private void ThrowIfDisposed() {
     if (_disposed) {
@@ -34,8 +36,9 @@ public class AudioApi : IAudioApi, IDisposable {
     }
   }
 
-  public AudioApi(AudioManager audioManager) {
+  public AudioApi(AudioManager audioManager, IOptionsMonitor<AudioConfig> config) {
     AudioManager = audioManager;
+    Config = config;
   }
 
   public void Dispose() {
