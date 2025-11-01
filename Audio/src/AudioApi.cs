@@ -18,6 +18,7 @@
 
 using Audio.Decoders;
 using AudioApi;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Audio;
@@ -27,7 +28,7 @@ public class AudioApi : IAudioApi, IDisposable {
   private AudioManager AudioManager { get; set; }
   private IOptionsMonitor<AudioConfig> Config { get; set; }
   private bool _disposed = false;
-
+  private ILogger<AudioApi> Logger { get; set; }
   private IPcmDecoder Decoder { get => Config.CurrentValue.UseFFMpeg ? new FFMpegDecoder() : new NativeDecoder(); }
 
   private void ThrowIfDisposed() {
@@ -36,9 +37,14 @@ public class AudioApi : IAudioApi, IDisposable {
     }
   }
 
-  public AudioApi(AudioManager audioManager, IOptionsMonitor<AudioConfig> config) {
+  public AudioApi(AudioManager audioManager, IOptionsMonitor<AudioConfig> config, ILogger<AudioApi> logger) {
+    Logger = logger;
     AudioManager = audioManager;
     Config = config;
+    Logger.LogInformation("Using {Decoder} decoder.", Config.CurrentValue.UseFFMpeg ? "FFMpeg" : "Native");
+    Config.OnChange((config) => {
+      Logger.LogInformation("Using {Decoder} decoder.", config.UseFFMpeg ? "FFMpeg" : "Native");
+    });
   }
 
   public void Dispose() {

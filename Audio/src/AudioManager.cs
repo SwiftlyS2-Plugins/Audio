@@ -48,7 +48,7 @@ public class AudioManager : IDisposable {
 
 
   public void ConfigureOpusEncoder(AudioConfig config) {
-    Logger.LogInformation("Configuring Opus encoder with complexity = {Complexity}", config.OpusComplexity);
+    Logger.LogInformation("Configuring Opus encoder with complexity = {Complexity}.", config.OpusComplexity);
     for (int i = 0; i < AudioConstants.MaxPlayers; i++) {
       if (Encoders[i] == null) {
         Encoders[i] = new OpusEncoder(AudioConstants.SampleRate, AudioConstants.Channels, OpusPredefinedValues.OPUS_APPLICATION_AUDIO);
