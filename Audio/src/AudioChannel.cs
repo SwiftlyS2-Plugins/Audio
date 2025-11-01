@@ -88,14 +88,12 @@ public class AudioChannel : IAudioChannelController, IAudioChannel, IDisposable 
     ThrowIfDisposed();
     Reset(slot);
     Resume(slot);
-    Unmute(slot);
   }
 
   public void PlayToAll() {
     ThrowIfDisposed();
     ResetAll();
     ResumeAll();
-    UnmuteAll();
   }
 
   public void Stop(int slot) {
