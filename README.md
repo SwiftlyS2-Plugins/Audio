@@ -22,7 +22,7 @@ Download the plugin from the latest release and install it on your server.
 Add following lines to your `.csproj` file:
 
 ```xml
-  <PackageReference Include="SwiftlyS2.Plugin.Audio.API" Version="1.0.0" />
+  <PackageReference Include="SwiftlyS2.Plugin.Audio.API" Version="2.0.0" />
 ```
 
 ## Configuration
