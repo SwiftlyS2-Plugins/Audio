@@ -6,7 +6,7 @@ use std::{
 };
 
 use anyhow::{anyhow, Context, Result};
-use rubato::{FastFixedIn, FftFixedIn, PolynomialDegree, Resampler};
+use rubato::Resampler;
 use once_cell::sync::Lazy;
 use symphonia::core::{
     audio::SampleBuffer,

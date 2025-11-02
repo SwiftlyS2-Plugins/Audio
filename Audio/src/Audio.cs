@@ -26,7 +26,7 @@ namespace Audio;
 
 [PluginMetadata(
   Id = "Audio", 
-  Version = "0.4.0", 
+  Version = "1.0.0", 
   Name = "Audio", 
   Author = "samyyc", 
   Description = "A high performance VoIP audio lib for swiftlys2."
