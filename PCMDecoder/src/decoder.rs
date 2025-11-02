@@ -31,8 +31,8 @@ impl PCMDecoder {
         Self { buffer: None }
     }
 
-    pub fn decode(&mut self, audio_data: &[u8]) -> Result<()> {
-        let cursor = Cursor::new(audio_data.to_vec());
+    pub fn decode(&mut self, audio_data: &'static [u8]) -> Result<()> {
+        let cursor = Cursor::new(audio_data);
         let mss = MediaSourceStream::new(Box::new(cursor), Default::default());
 
         let hint = Hint::new();
@@ -108,18 +108,14 @@ impl PCMDecoder {
 
             let frames = interleaved.len() / channels;
 
-            for ch in 0..channels {
-                if let Some(buffer) = channel_samples.get_mut(ch) {
-                    buffer.reserve(frames);
-                }
+            for buffer in &mut channel_samples {
+                buffer.reserve(frames);
             }
 
             for frame in 0..frames {
                 let base = frame * channels;
                 for ch in 0..channels {
-                    if let Some(buffer) = channel_samples.get_mut(ch) {
-                        buffer.push(interleaved[base + ch] as f32);
-                    }
+                    channel_samples[ch].push(interleaved[base + ch]);
                 }
             }
         }
@@ -177,7 +173,7 @@ pub unsafe extern "C" fn pcmdecoder_copy(dest_ptr: *mut f32) -> bool {
     match DECODER.lock() {
         Ok(decoder) => {
             if let Some(buf) = decoder.buffer() {
-                unsafe { ptr::copy_nonoverlapping(buf.as_ptr() as *mut f32, dest_ptr, buf.len()) };
+                unsafe { ptr::copy_nonoverlapping(buf.as_ptr(), dest_ptr, buf.len()) };
                 true
             } else {
                 println!("pcmdecoder_copy: buffer is empty");
@@ -262,12 +258,13 @@ fn resample(samples: &[Vec<f32>], source_rate: u32, target_rate: u32) -> Result<
 
     let out_frames = out_ch[0].len();
     let mut out = Vec::with_capacity(out_frames);
+    let inv_channels = 1.0 / channels as f32;
     for f in 0..out_frames {
         let mut acc = 0f32;
         for ch in 0..channels {
             acc += out_ch[ch][f];
         }
-        out.push(acc / channels as f32);
+        out.push(acc * inv_channels);
     }
     Ok(out)
 }
