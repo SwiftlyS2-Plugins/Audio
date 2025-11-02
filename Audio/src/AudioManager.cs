@@ -21,6 +21,7 @@ using AudioApi;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared.ProtobufDefinitions;
+using ZLinq.Simd;
 
 namespace Audio;
 
@@ -30,7 +31,7 @@ public class AudioManager : IDisposable {
   private List<IAudioChannel> CustomChannels { get; set; } = new();
 
   private OpusEncoder[] Encoders { get; set; } = new OpusEncoder[AudioConstants.MaxPlayers];
-  private short[] CurrentFrame { get; set; } = new short[AudioConstants.FrameSize];
+  private float[] CurrentFrame { get; set; } = new float[AudioConstants.FrameSize];
   private IOptionsMonitor<AudioConfig>? Config { get; set; }
   private ILogger<AudioManager> Logger { get; set; }
   public AudioManager(IOptionsMonitor<AudioConfig>? config, ILogger<AudioManager> logger) {
@@ -119,7 +120,7 @@ public class AudioManager : IDisposable {
     }
   }
 
-  public ReadOnlySpan<short> GetFrame(int slot) {
+  public ReadOnlySpan<float> GetFrame(int slot) {
     ResetCurrentFrame();
     foreach (var channel in Channels)
     {
@@ -147,10 +148,11 @@ public class AudioManager : IDisposable {
   }
 
 
-  private void MixFrames(Span<short> target, ReadOnlySpan<short> source, float volume = 1.0f) {
-    for (int i = 0; i < source.Length; i++) {
-      int mixed = target[i] + (int)(source[i] * volume);
-      target[i] = (short)Math.Clamp(mixed, short.MinValue, short.MaxValue);
-    }
+  private void MixFrames(Span<float> target, ReadOnlySpan<float> source, float volume = 1.0f) {
+    target.AsVectorizable().Zip(
+      source,
+      (a, b) => a + b * volume,
+      (a, b) => a + b * volume
+    ).CopyTo(target);
   }
 }

@@ -108,18 +108,18 @@ public class AudioMainloop : IDisposable {
         {
           if (player is not { IsValid: true} || !hasFrame[player.PlayerID]) continue; 
           var i = player.PlayerID;
-          Protobufs[i].Tick = (uint)Core.Engine.TickCount;
+          Protobufs[i].Tick = (uint)Core.Engine.GlobalVars.TickCount;
           Protobufs[i].Audio.SectionNumber = sectionNumber;
           Protobufs[i].Audio.VoiceData = Buffer[i].AsSpan(0, Offsets[i]).ToArray();
           Offsets[i] = 0;
           Buffer[i].AsSpan().Clear();
 
-          // Core.Scheduler.NextTick(() =>
-          // {
+          Core.Scheduler.NextTick(() =>
+          {
             Protobufs[i].Send();
             Reset(i);
 
-          // });
+          });
         }
 
         Core.Profiler.StopRecording("AudioMainloop");

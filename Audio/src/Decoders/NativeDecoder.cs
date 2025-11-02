@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using SwiftlyS2.Shared;
@@ -50,7 +51,43 @@ public class NativeDecoder : IPcmDecoder {
   private static class NativeBindings {
     private const string LibraryName = "pcmdecoder";
     private static readonly object SyncRoot = new();
-    private static IntPtr _handle;
+
+    [SwiftlyInject]
+    private static ISwiftlyCore Core = null!;
+
+    static NativeBindings() {
+      NativeLibrary.SetDllImportResolver(typeof(NativeBindings).Assembly, DllImportResolver);
+    }
+    private static IntPtr DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+    {
+      if (libraryName == "pcmdecoder")
+      {
+        if (OperatingSystem.IsWindows()) {
+          var runtimePath = Path.Combine(
+              Core.PluginPath,
+              "resources",
+              "natives",
+              "pcmdecoder.dll"
+          );
+
+          if (NativeLibrary.TryLoad(runtimePath, out var handle))
+            return handle;
+        } else if (OperatingSystem.IsLinux()) {
+          var runtimePath = Path.Combine(
+              Core.PluginPath,
+              "resources",
+              "natives",
+              "libpcmdecoder.so"
+          );
+
+          if (NativeLibrary.TryLoad(runtimePath, out var handle))
+            return handle;
+        }
+
+      }
+
+      return IntPtr.Zero;
+    }
 
 
     [DllImport(LibraryName, EntryPoint = "pcmdecoder_decode", ExactSpelling = true)]
@@ -83,19 +120,14 @@ public class NativeDecoder : IPcmDecoder {
           throw new InvalidOperationException("Native PCM decoder failed to decode the provided data. Check native logs for details.");
         }
 
-        var sampleCount64 = PcmDecoderGetSize().ToUInt64();
-        if (sampleCount64 == 0) {
+        var sampleCount = PcmDecoderGetSize();
+        if (sampleCount == 0) {
           PcmDecoderFree();
           return Array.Empty<byte>();
         }
 
-        if (sampleCount64 > int.MaxValue) {
-          PcmDecoderFree();
-          throw new InvalidOperationException("Decoded PCM data is too large to fit into a managed buffer.");
-        }
 
-        var sampleCount = (int)sampleCount64;
-        var samples = new byte[sampleCount * 2];
+        var samples = new byte[sampleCount * 4];
 
         fixed (byte* destPtr = samples) {
           var success = PcmDecoderCopy((IntPtr)destPtr);

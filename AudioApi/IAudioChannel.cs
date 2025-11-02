@@ -47,9 +47,9 @@ public interface IAudioChannel : IDisposable {
   /// <summary>
   /// Gets the next frame for the given player.
   /// 
-  /// The frame should be in PCM S16LE format and have exact 480 shorts.
+  /// The frame should be in PCM F32LE format and have exact 480 floats.
   /// </summary>
   /// <param name="playerId">Player slot.</param>
   /// <returns>The next frame for the given player.</returns>
-  ReadOnlySpan<short> GetFrame(int playerId);
+  ReadOnlySpan<float> GetFrame(int playerId);
 }

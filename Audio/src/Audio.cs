@@ -21,7 +21,6 @@ using SwiftlyS2.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using AudioApi;
 using Microsoft.Extensions.Configuration;
-using SwiftlyS2.Shared.Commands;
 
 namespace Audio;
 
@@ -98,15 +97,11 @@ public partial class Audio(ISwiftlyCore core) : BasePlugin(core) {
     //   var api = ServiceProvider!.GetRequiredService<AudioApi>();
     //   var channel = api.UseChannel("test");
 
+    // Console.WriteLine("Source decoded4");
+    // var source = api.DecodeFromFile("E:/p.mp3");
     // Console.WriteLine("Source decoded");
-    // Task.Run(async () =>
-    //   {
-    //     var task = api.DecodeFromFileAsync("E:/p.mp3");
-    //     var source = await task;
-    //     Console.WriteLine("Source decoded");
-    //     channel.SetSource(source);
-    //     channel.PlayToAll();
-    //   });
+    // channel.SetSource(source);
+    // channel.PlayToAll();
     // }
 
 } 

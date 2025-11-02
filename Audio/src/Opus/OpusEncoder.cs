@@ -52,9 +52,9 @@ public class OpusEncoder : IDisposable {
   /// <param name="output"> The output audio data. </param>
   /// <param name="outputLength"> The length of the output audio data. </param>
   /// <returns> The number of bytes encoded. </returns>
-  public int Encode(ReadOnlySpan<short> input, int inputLength, Span<byte> output, int outputLength) {
+  public int Encode(ReadOnlySpan<float> input, int inputLength, Span<byte> output, int outputLength) {
     ThrowIfDisposed();
-    return Engine2Opus.Encode(Handle, input, inputLength, output, outputLength);
+    return Engine2Opus.EncodeFloat(Handle, input, inputLength, output, outputLength);
   }
 
 

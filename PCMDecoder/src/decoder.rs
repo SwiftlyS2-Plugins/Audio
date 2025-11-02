@@ -6,7 +6,7 @@ use std::{
 };
 
 use anyhow::{anyhow, Context, Result};
-use rubato::{FastFixedIn, PolynomialDegree, Resampler};
+use rubato::{FastFixedIn, FftFixedIn, PolynomialDegree, Resampler};
 use once_cell::sync::Lazy;
 use symphonia::core::{
     audio::SampleBuffer,
@@ -23,7 +23,7 @@ const TARGET_SAMPLE_RATE: u32 = 48_000;
 static DECODER: Lazy<Mutex<PCMDecoder>> = Lazy::new(|| Mutex::new(PCMDecoder::new()));
 
 pub struct PCMDecoder {
-    buffer: Option<Vec<i16>>,
+    buffer: Option<Vec<f32>>,
 }
 
 impl PCMDecoder {
@@ -52,7 +52,7 @@ impl PCMDecoder {
             .make(&codec_params, &DecoderOptions::default())
             .context("failed to create decoder")?;
 
-        let mut mono_samples = Vec::<f32>::new();
+        let mut channel_samples: Vec<Vec<f32>> = Vec::new();
         let mut source_rate = codec_params.sample_rate.unwrap_or(TARGET_SAMPLE_RATE);
 
         loop {
@@ -88,7 +88,7 @@ impl PCMDecoder {
                 continue;
             }
 
-            let mut sample_buffer = SampleBuffer::<i16>::new(decoded.capacity() as u64, *decoded.spec());
+            let mut sample_buffer = SampleBuffer::<f32>::new(decoded.capacity() as u64, *decoded.spec());
             sample_buffer.copy_interleaved_ref(decoded);
 
             let interleaved = sample_buffer.samples();
@@ -96,25 +96,40 @@ impl PCMDecoder {
                 continue;
             }
 
+            if channel_samples.is_empty() {
+                channel_samples = (0..channels).map(|_| Vec::new()).collect();
+            } else if channel_samples.len() != channels {
+                return Err(anyhow!(
+                    "channel count changed within stream: expected {}, got {}",
+                    channel_samples.len(),
+                    channels
+                ));
+            }
+
             let frames = interleaved.len() / channels;
-            mono_samples.reserve(frames);
+
+            for ch in 0..channels {
+                if let Some(buffer) = channel_samples.get_mut(ch) {
+                    buffer.reserve(frames);
+                }
+            }
 
             for frame in 0..frames {
                 let base = frame * channels;
-                let mut acc = 0f32;
                 for ch in 0..channels {
-                    acc += interleaved[base + ch] as f32;
+                    if let Some(buffer) = channel_samples.get_mut(ch) {
+                        buffer.push(interleaved[base + ch] as f32);
+                    }
                 }
-                mono_samples.push(acc / channels as f32);
             }
         }
 
-        let pcm = resample_and_quantize_to_s16le(&mono_samples, source_rate, TARGET_SAMPLE_RATE)?;
+        let pcm = resample(&channel_samples, source_rate, TARGET_SAMPLE_RATE)?;
         self.buffer = Some(pcm);
         Ok(())
     }
 
-    pub fn buffer(&self) -> Option<&[i16]> {
+    pub fn buffer(&self) -> Option<&[f32]> {
         self.buffer.as_deref()
     }
 }
@@ -153,7 +168,7 @@ pub extern "C" fn pcmdecoder_get_size() -> usize {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn pcmdecoder_copy(dest_ptr: *mut i16) -> bool {
+pub unsafe extern "C" fn pcmdecoder_copy(dest_ptr: *mut f32) -> bool {
     if dest_ptr.is_null() {
         println!("pcmdecoder_copy: received null destination pointer");
         return false;
@@ -162,7 +177,7 @@ pub unsafe extern "C" fn pcmdecoder_copy(dest_ptr: *mut i16) -> bool {
     match DECODER.lock() {
         Ok(decoder) => {
             if let Some(buf) = decoder.buffer() {
-                unsafe { ptr::copy_nonoverlapping(buf.as_ptr(), dest_ptr, buf.len()) };
+                unsafe { ptr::copy_nonoverlapping(buf.as_ptr() as *mut f32, dest_ptr, buf.len()) };
                 true
             } else {
                 println!("pcmdecoder_copy: buffer is empty");
@@ -183,40 +198,76 @@ pub extern "C" fn pcmdecoder_free() {
     }
 }
 
-fn resample_and_quantize_to_s16le(samples: &[f32], source_rate: u32, target_rate: u32) -> Result<Vec<i16>> {
+fn resample(samples: &[Vec<f32>], source_rate: u32, target_rate: u32) -> Result<Vec<f32>> {
     if samples.is_empty() || source_rate == 0 || target_rate == 0 {
         return Ok(Vec::new());
     }
-
-    if source_rate == target_rate {
-        return Ok(samples.iter().map(|&sample| float_to_i16(sample)).collect());
+    let channels = samples.len();
+    let in_frames = samples[0].len();
+    if samples.iter().any(|c| c.len() != in_frames) {
+        return Err(anyhow!("channel buffers must be the same length"));
     }
 
-    let ratio = target_rate as f64 / source_rate as f64;
+    if source_rate == target_rate {
+        let mut out = Vec::with_capacity(in_frames);
+        for f in 0..in_frames {
+            let mut acc = 0f32;
+            for ch in 0..channels {
+                acc += samples[ch][f];
+            }
+            out.push(acc / channels as f32);
+        }
+        return Ok(out);
+    }
 
-    let chunk_size = samples.len();
-
-    let mut resampler = FastFixedIn::<f32>::new(
-        ratio,
-        2.0,
-        PolynomialDegree::Cubic,
-        chunk_size,
-        1,
+    let chunk_in = 4096;
+    let mut resampler = rubato::FftFixedIn::<f32>::new(
+        source_rate as usize,
+        target_rate as usize,
+        chunk_in,
+        4,
+        channels
     )?;
 
-    let input = vec![samples];
+    let mut out_ch = vec![Vec::<f32>::new(); channels];
 
-    let output = resampler.process(&input, None)?;
+    let mut pos = 0;
+    while pos < in_frames {
+        let take = (in_frames - pos).min(chunk_in);
+        let mut block = Vec::with_capacity(channels);
+        for ch in 0..channels {
+            block.push(samples[ch][pos..pos + take].to_vec());
+        }
+        pos += take;
 
-    let estimated_len = (samples.len() as f64 * ratio).round() as usize;
+        if take < chunk_in {
+            for ch in 0..channels {
+                block[ch].resize(chunk_in, 0.0);
+            }
+        }
 
-    let mut result = Vec::with_capacity(estimated_len);
-    result.extend(output.into_iter().flatten().map(float_to_i16));
-    Ok(result)
-}
+        let y = resampler.process(&block, None)?; 
+        for ch in 0..channels {
+            out_ch[ch].extend_from_slice(&y[ch]);
+        }
+    }
 
+    for _ in 0..3 {
+        let zeros = vec![vec![0f32; chunk_in]; channels];
+        let y = resampler.process(&zeros, None)?;
+        for ch in 0..channels {
+            out_ch[ch].extend_from_slice(&y[ch]);
+        }
+    }
 
-fn float_to_i16(value: f32) -> i16 {
-    let clamped = value.clamp(i16::MIN as f32, i16::MAX as f32);
-    clamped.round() as i16
+    let out_frames = out_ch[0].len();
+    let mut out = Vec::with_capacity(out_frames);
+    for f in 0..out_frames {
+        let mut acc = 0f32;
+        for ch in 0..channels {
+            acc += out_ch[ch][f];
+        }
+        out.push(acc / channels as f32);
+    }
+    Ok(out)
 }

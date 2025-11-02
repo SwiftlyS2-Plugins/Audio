@@ -31,6 +31,9 @@ public static class Engine2Opus {
   [DllImport("engine2", EntryPoint = "opus_encode")]
   private static extern int opus_encode(IntPtr encoder, IntPtr input, int inputLength, IntPtr output, int outputLength);
 
+  [DllImport("engine2", EntryPoint = "opus_encode_float")]
+  private static extern int opus_encode_float(IntPtr encoder, IntPtr input, int inputLength, IntPtr output, int outputLength);
+
   [DllImport("engine2", EntryPoint = "opus_encoder_ctl")]
   private static extern int opus_encoder_ctl(IntPtr encoder, int type, nint data);
 
@@ -48,6 +51,18 @@ public static class Engine2Opus {
 
   public static void Destroy(OpusSafeHandle encoder) {
     opus_encoder_destroy(encoder.DangerousGetHandle());
+  }
+
+  public static int EncodeFloat(OpusSafeHandle encoder, ReadOnlySpan<float> input, int inputLength, Span<byte> output, int outputLength) {
+    unsafe {
+      fixed (float* inputPtr = input) {
+        fixed (byte* outputPtr = output) {
+          var result = opus_encode_float(encoder.DangerousGetHandle(), (nint)inputPtr, inputLength, (nint)outputPtr, outputLength);
+          OpusException.ThrowIfError("opus_encode_float", result);
+          return result;
+        }
+      }
+    }
   }
 
   public static int Encode(OpusSafeHandle encoder, ReadOnlySpan<short> input, int inputLength, Span<byte> output, int outputLength) {

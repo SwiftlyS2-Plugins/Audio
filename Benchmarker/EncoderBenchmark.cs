@@ -27,6 +27,7 @@ using Microsoft.Extensions.Options;
 namespace Benchmarker;
 [MemoryDiagnoser]
 // set run times
+[SimpleJob(RuntimeMoniker.Net80, launchCount: 1, warmupCount: 10, iterationCount: 10)]
 public class EncoderBenchmark
 {
   private AudioManager? audioManager;
@@ -57,13 +58,13 @@ public class EncoderBenchmark
   [Benchmark]
   public void FFMpegDecode()
   {
-    ffmpegDecoder.DecodeFromFile("E:/p.mp3");
+    ffmpegDecoder.DecodeFromFile("E:/CRYCHIC - 春日影.mp3");
   }
 
   [Benchmark]
   public void NativeDecode()
   {
-    nativeDecoder.DecodeFromFile("E:/p.mp3");
+    nativeDecoder.DecodeFromFile("E:/CRYCHIC - 春日影.mp3");
   // [Benchmark]
   // public void Encode()
   // {

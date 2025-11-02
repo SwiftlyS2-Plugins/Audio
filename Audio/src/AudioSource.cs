@@ -34,10 +34,10 @@ public class AudioSource : IAudioSource {
   public bool HasFrame(int cursor) {
     return cursor * AudioConstants.FrameSizeInBytes < PcmData.Length;
   }
-  public ReadOnlySpan<short> GetFrame(int cursor) {
+  public ReadOnlySpan<float> GetFrame(int cursor) {
     var min = cursor * AudioConstants.FrameSizeInBytes;
     var max = Math.Min((cursor + 1) * AudioConstants.FrameSizeInBytes, PcmData.Length);
-    return MemoryMarshal.Cast<byte, short>(PcmData.AsSpan(min, max - min));
+    return MemoryMarshal.Cast<byte, float>(PcmData.AsSpan(min, max - min));
   }
 
 }

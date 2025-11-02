@@ -30,12 +30,9 @@ public class AudioChannel : IAudioChannelController, IAudioChannel, IDisposable 
   public bool[] IsPaused { get; private set; } = new bool[AudioConstants.MaxPlayers];
   public bool[] IsMuted { get; private set; } = new bool[AudioConstants.MaxPlayers];
 
-  [SwiftlyInject]
-  private static ISwiftlyCore Core { get; set; } = null!;
-
   private bool _disposed = false;
 
-  public event Action<int> OnOpusResetRequested;
+  public event Action<int>? OnOpusResetRequested;
 
   private void ThrowIfDisposed() {
     if (_disposed) {
@@ -70,7 +67,7 @@ public class AudioChannel : IAudioChannelController, IAudioChannel, IDisposable 
     return Source != null && !IsPaused[slot] && !IsMuted[slot] && Source.HasFrame(Cursors[slot]);
   }
 
-  public ReadOnlySpan<short> GetFrame(int slot) {
+  public ReadOnlySpan<float> GetFrame(int slot) {
     ThrowIfDisposed();
     return Source!.GetFrame(Cursors[slot]);
   }
@@ -78,7 +75,7 @@ public class AudioChannel : IAudioChannelController, IAudioChannel, IDisposable 
   public void NextFrame() {
     ThrowIfDisposed();
     for (int i = 0; i < AudioConstants.MaxPlayers; i++) {
-      if (!IsPaused[i]) {
+      if (!IsPaused[i] && Source != null && Source.HasFrame(i+1)) {
         Cursors[i] += 1;
       }
     }

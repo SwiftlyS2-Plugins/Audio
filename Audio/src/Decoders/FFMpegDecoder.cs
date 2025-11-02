@@ -8,10 +8,10 @@ public class FFMpegDecoder : IPcmDecoder {
   private static void WithOpusPcmOption(FFMpegArgumentOptions options)
   {
     options
-      .WithAudioCodec("pcm_s16le")
+      .WithAudioCodec("pcm_f32le")
       .WithAudioSamplingRate(AudioConstants.SampleRate)
       .WithCustomArgument($"-ac {AudioConstants.Channels}")
-      .ForceFormat("s16le");
+      .ForceFormat("f32le");
   }
 
   public byte[] Decode(byte[] data)

@@ -20,7 +20,7 @@ namespace AudioApi;
 
 /// <summary>
 /// Represents an audio source that can be used to play audio.
-/// The source should be in PCM S16LE format.
+/// The source should be in PCM F32LE format.
 /// </summary>
 public interface IAudioSource {
 
@@ -35,12 +35,12 @@ public interface IAudioSource {
 
   /// <summary>
   /// Gets the frame at the given cursor.
-  /// The frame should have exact 960 bytes (480 shorts).
+  /// The frame should have exact 1920 bytes (480 floats) in PCM F32LE format.
   /// 
   /// If your source acts like a live stream and does not have a fixed length, you can ignore the given cursor.
   /// Do notice that this function can be called multiple times with the same cursor to be played for multiple players.
   /// </summary>
   /// <param name="cursor">The cursor to get the frame at. </param>
   /// <returns>The frame at the given cursor.</returns>
-  ReadOnlySpan<short> GetFrame(int cursor);
+  ReadOnlySpan<float> GetFrame(int cursor);
 }
