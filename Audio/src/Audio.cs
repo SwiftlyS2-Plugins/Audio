@@ -21,6 +21,7 @@ using SwiftlyS2.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using AudioApi;
 using Microsoft.Extensions.Configuration;
+using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace Audio;
 

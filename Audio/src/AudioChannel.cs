@@ -17,8 +17,6 @@
  */
 
 using AudioApi;
-using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.ProtobufDefinitions;
 
 namespace Audio;
 

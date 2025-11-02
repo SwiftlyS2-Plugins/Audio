@@ -18,8 +18,6 @@
 
 using System.Runtime.InteropServices;
 using AudioApi;
-using FFMpegCore;
-using FFMpegCore.Pipes;
 
 namespace Audio;
 

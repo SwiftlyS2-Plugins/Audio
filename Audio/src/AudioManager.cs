@@ -20,7 +20,6 @@ using Audio.Opus;
 using AudioApi;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SwiftlyS2.Shared.ProtobufDefinitions;
 using ZLinq.Simd;
 
 namespace Audio;
