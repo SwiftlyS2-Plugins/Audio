@@ -22,12 +22,15 @@ using Microsoft.Extensions.DependencyInjection;
 using AudioApi;
 using Microsoft.Extensions.Configuration;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using SwiftlyS2.Shared.Natives;
+using ZLinq;
+using SwiftlyS2.Shared.Commands;
 
 namespace Audio;
 
 [PluginMetadata(
   Id = "Audio", 
-  Version = "1.0.0", 
+  Version = "1.0.1", 
   Name = "Audio", 
   Author = "samyyc", 
   Description = "A high performance VoIP audio lib for swiftlys2."
@@ -80,6 +83,7 @@ public partial class Audio(ISwiftlyCore core) : BasePlugin(core) {
 
   public override void ConfigureSharedInterface(IInterfaceManager interfaceManager)
   {
+    CBaseTrigger trigger = null!;
     interfaceManager.AddSharedInterface<IAudioApi, AudioApi>("audio", ServiceProvider!.GetRequiredService<AudioApi>());
   }
 
