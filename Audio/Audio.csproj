@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -11,29 +10,24 @@
     <OutputPath>$(MSBuildThisFileDirectory)build/</OutputPath>
     <PublishDir>F:\cs2server\game\csgo\addons\swiftlys2\plugins\Audio</PublishDir>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" ExcludeAssets="runtime" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" ExcludeAssets="runtime" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" ExcludeAssets="runtime" PrivateAssets="all" /> 
-    <PackageReference Include="FFMpegCore" Version="5.2.0" /> 
-    <PackageReference Include="SwiftlyS2.CS2" Version="0.2.35" ExcludeAssets="runtime" PrivateAssets="all" /> 
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="FFMpegCore" Version="5.2.0" />
+    <PackageReference Include="SwiftlyS2.CS2" Version="0.2.35" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="ZLinq" Version="1.5.3" />
     <ProjectReference Include="../AudioApi/AudioApi.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Content Include="resources/**/*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
   <Target Name="CreateZip" AfterTargets="Publish">
     <ItemGroup>
       <PublishFiles Include="$(PublishDir)**\*.*" />
     </ItemGroup>
-    
     <ZipDirectory SourceDirectory="$(PublishDir)../" DestinationFile="$(OutputPath)../$(AssemblyName).zip" Overwrite="true" />
   </Target>
-
-</Project> 
+</Project>

@@ -1,12 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>AudioApi</AssemblyName>
     <PackageId>SwiftlyS2.Plugin.Audio.API</PackageId>
-
     <Version>2.0.0</Version>
     <Authors>samyyc</Authors>
     <Description>A high performance VoIP audio lib for swiftlys2.</Description>
@@ -16,8 +14,6 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>audio;plugin;api;swiftlys2</PackageTags>
   </PropertyGroup>
-
   <ItemGroup>
   </ItemGroup>
-
-</Project> 
+</Project>
