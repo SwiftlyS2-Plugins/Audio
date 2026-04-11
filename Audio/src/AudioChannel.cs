@@ -62,18 +62,22 @@ public class AudioChannel : IAudioChannelController, IAudioChannel, IDisposable 
   public bool HasFrame(int slot)
   {
     ThrowIfDisposed();
-    return Source != null && !IsPaused[slot] && !IsMuted[slot] && Source.HasFrame(Cursors[slot]);
+    var source = Source;
+    return source != null && !IsPaused[slot] && !IsMuted[slot] && source.HasFrame(Cursors[slot]);
   }
 
   public ReadOnlySpan<float> GetFrame(int slot) {
     ThrowIfDisposed();
-    return Source!.GetFrame(Cursors[slot]);
+    var source = Source;
+    if (source == null) return ReadOnlySpan<float>.Empty;
+    return source.GetFrame(Cursors[slot]);
   }
 
   public void NextFrame() {
     ThrowIfDisposed();
+    var source = Source;
     for (int i = 0; i < AudioConstants.MaxPlayers; i++) {
-      if (!IsPaused[i] && Source != null && Source.HasFrame(i+1)) {
+      if (!IsPaused[i] && source != null && source.HasFrame(Cursors[i] + 1)) {
         Cursors[i] += 1;
       }
     }

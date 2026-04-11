@@ -103,6 +103,7 @@ public class AudioMainloop : IDisposable {
           {
             if (player is not { IsValid: true }) continue;
             var i = player.PlayerID;
+            if ((uint)i >= AudioConstants.MaxPlayers) continue;
             if (!audioManager.HasFrame(i)) continue;
             if (offsets[player.PlayerID] is null) offsets[player.PlayerID] = new List<int>();
             var lastOffset = offsets[i].Count == 0 ? 0 : offsets[i].Last();
@@ -121,8 +122,9 @@ public class AudioMainloop : IDisposable {
 
         foreach (var player in allPlayers)
         {
-          if (player is not { IsValid: true} || offsets[player.PlayerID] is null) continue; 
+          if (player is not { IsValid: true}) continue;
           var i = player.PlayerID;
+          if ((uint)i >= AudioConstants.MaxPlayers || offsets[i] is null) continue;
 
           var msg = Core.NetMessage.Create<CSVCMsg_VoiceData>();
 

@@ -25,9 +25,11 @@ using ZLinq.Simd;
 namespace Audio;
 
 public class AudioManager : IDisposable {
-  private List<AudioChannel> Channels { get; set; } = new();
-
-  private List<IAudioChannel> CustomChannels { get; set; } = new();
+  private readonly object _channelsLock = new();
+  private readonly List<AudioChannel> _channelsList = new();
+  private readonly List<IAudioChannel> _customChannelsList = new();
+  private volatile AudioChannel[] _channels = [];
+  private volatile IAudioChannel[] _customChannels = [];
 
   private OpusEncoder[] Encoders { get; set; } = new OpusEncoder[AudioConstants.MaxPlayers];
   private float[] CurrentFrame { get; set; } = new float[AudioConstants.FrameSize];
@@ -73,63 +75,89 @@ public class AudioManager : IDisposable {
 
 
   public void Dispose() {
+    AudioChannel[] channels;
+    IAudioChannel[] customChannels;
+    lock (_channelsLock) {
+      channels = _channels;
+      customChannels = _customChannels;
+      _channelsList.Clear();
+      _customChannelsList.Clear();
+      _channels = [];
+      _customChannels = [];
+    }
     foreach (var encoder in Encoders) {
       encoder.Dispose();
     }
-    foreach (var channel in Channels) {
+    foreach (var channel in channels) {
       channel.Dispose();
     }
-    foreach (var channel in CustomChannels) {
+    foreach (var channel in customChannels) {
       channel.Dispose();
     }
-    CustomChannels.Clear();
-    Channels.Clear();
   }
 
   public AudioChannel UseChannel(string id) {
-    if (Channels.Any(channel => channel.Id == id)) {
-      return Channels.First(channel => channel.Id == id);
+    lock (_channelsLock) {
+      var existing = _channelsList.FirstOrDefault(channel => channel.Id == id);
+      if (existing != null) return existing;
+      var newChannel = new AudioChannel(id);
+      _channelsList.Add(newChannel);
+      _channels = [.. _channelsList];
+      newChannel.OnOpusResetRequested += OpusReset;
+      return newChannel;
     }
-    var newChannel = new AudioChannel(id);
-    Channels.Add(newChannel);
-    newChannel.OnOpusResetRequested += OpusReset;
-    return newChannel;
   }
 
   public void AddCustomChannel(IAudioChannel channel) {
-    CustomChannels.Add(channel);
+    lock (_channelsLock) {
+      _customChannelsList.Add(channel);
+      _customChannels = [.. _customChannelsList];
+    }
     channel.OnOpusResetRequested += OpusReset;
   }
 
   public void RemoveCustomChannel(IAudioChannel channel) {
     channel.OnOpusResetRequested -= OpusReset;
-    CustomChannels.Remove(channel);
+    lock (_channelsLock) {
+      _customChannelsList.Remove(channel);
+      _customChannels = [.. _customChannelsList];
+    }
   }
 
   public bool HasFrame(int slot) {
-    return Channels.Any(channel => channel.HasFrame(slot)) || CustomChannels.Any(channel => channel.HasFrame(slot));
+    var channels = _channels;
+    var customChannels = _customChannels;
+    return channels.Any(channel => channel.HasFrame(slot)) || customChannels.Any(channel => channel.HasFrame(slot));
   }
 
   public void NextFrame() {
-    foreach (var channel in Channels) {
+    var channels = _channels;
+    var customChannels = _customChannels;
+    foreach (var channel in channels) {
       channel.NextFrame();
     }
-    foreach (var channel in CustomChannels) {
+    foreach (var channel in customChannels) {
       channel.NextFrame();
     }
   }
 
   public ReadOnlySpan<float> GetFrame(int slot) {
     ResetCurrentFrame();
-    foreach (var channel in Channels)
+    var channels = _channels;
+    var customChannels = _customChannels;
+    foreach (var channel in channels)
     {
       if (channel.HasFrame(slot)) {
-        MixFrames(CurrentFrame.AsSpan(), channel.GetFrame(slot), channel.GetVolume(slot));
+        var frame = channel.GetFrame(slot);
+        if (!frame.IsEmpty)
+          MixFrames(CurrentFrame.AsSpan(), frame, channel.GetVolume(slot));
       }
     }
-    foreach (var channel in CustomChannels) {
+    foreach (var channel in customChannels) {
       if (channel.HasFrame(slot)) {
-        MixFrames(CurrentFrame.AsSpan(), channel.GetFrame(slot), 1.0f);
+        var frame = channel.GetFrame(slot);
+        if (!frame.IsEmpty)
+          MixFrames(CurrentFrame.AsSpan(), frame, 1.0f);
       }
     }
     return CurrentFrame.AsSpan();
