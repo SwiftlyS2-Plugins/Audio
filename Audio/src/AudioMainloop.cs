@@ -104,7 +104,7 @@ public class AudioMainloop : IDisposable {
             var i = player.PlayerID;
             if ((uint)i >= AudioConstants.MaxPlayers) continue;
             if (!audioManager.HasFrame(i)) continue;
-            if (offsets[player.PlayerID] is null) offsets[player.PlayerID] = new List<int>();
+            if (offsets[i] is null) offsets[i] = new List<int>();
             var lastOffset = offsets[i].Count == 0 ? 0 : offsets[i].Last();
             var remainingLength = Buffer[i].Length - lastOffset;
             if (remainingLength <= 0) {
