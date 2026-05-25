@@ -101,7 +101,6 @@ public class AudioMainloop : IDisposable {
         {
           foreach (var player in allPlayers)
           {
-            if (player is not { IsValid: true }) continue;
             var i = player.PlayerID;
             if ((uint)i >= AudioConstants.MaxPlayers) continue;
             if (!audioManager.HasFrame(i)) continue;
