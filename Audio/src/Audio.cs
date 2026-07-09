@@ -22,24 +22,23 @@ using Microsoft.Extensions.DependencyInjection;
 using AudioApi;
 using Microsoft.Extensions.Configuration;
 using SwiftlyS2.Shared.SchemaDefinitions;
-using SwiftlyS2.Shared.Natives;
-using ZLinq;
-using SwiftlyS2.Shared.Commands;
 
 namespace Audio;
 
 [PluginMetadata(
-  Id = "Audio", 
-  Version = "1.0.5", 
-  Name = "Audio", 
-  Author = "samyyc", 
+  Id = "Audio",
+  Version = "1.0.6",
+  Name = "Audio",
+  Author = "samyyc",
   Description = "A high performance VoIP audio lib for swiftlys2."
 )]
-public partial class Audio(ISwiftlyCore core) : BasePlugin(core) {
+public partial class Audio(ISwiftlyCore core) : BasePlugin(core)
+{
 
   private ServiceProvider? ServiceProvider { get; set; }
 
-  public override void Load(bool hotReload) {
+  public override void Load(bool hotReload)
+  {
 
     Core.Configuration
       .InitializeJsonWithModel<AudioConfig>("config.jsonc", "Main")
@@ -54,7 +53,7 @@ public partial class Audio(ISwiftlyCore core) : BasePlugin(core) {
       .AddSingleton<AudioManager>()
       .AddSingleton<AudioApi>()
       .AddSingleton<AudioMainloop>();
-    
+
     collection
       .AddOptions<AudioConfig>()
       .BindConfiguration("Main");
@@ -63,15 +62,18 @@ public partial class Audio(ISwiftlyCore core) : BasePlugin(core) {
 
     var mainloop = ServiceProvider.GetRequiredService<AudioMainloop>();
 
-    if (hotReload) {
+    if (hotReload)
+    {
       mainloop.IsRunning = true;
     }
 
-    Core.Event.OnMapLoad += (map) => {
+    Core.Event.OnMapLoad += (map) =>
+    {
       mainloop.IsRunning = true;
     };
 
-    Core.Event.OnMapUnload += (map) => {
+    Core.Event.OnMapUnload += (map) =>
+    {
       mainloop.IsRunning = false;
     };
   }
@@ -87,26 +89,26 @@ public partial class Audio(ISwiftlyCore core) : BasePlugin(core) {
     interfaceManager.AddSharedInterface<IAudioApi, AudioApi>("audio", ServiceProvider!.GetRequiredService<AudioApi>());
   }
 
-    // public override void UseSharedInterface(IInterfaceManager interfaceManager)
-    // {
-    //     var api = interfaceManager.GetSharedInterface<IAudioApi>("audio");
-    //     var channel = api.UseChannel("test");
-    //     channel.SetSource(api.DecodeFromFile("E:/p.mp3"));
-    //     channel.SetVolumeToAll(0.5f);
-    //     channel.PlayToAll();
-    // }
+  // public override void UseSharedInterface(IInterfaceManager interfaceManager)
+  // {
+  //     var api = interfaceManager.GetSharedInterface<IAudioApi>("audio");
+  //     var channel = api.UseChannel("test");
+  //     channel.SetSource(api.DecodeFromFile("E:/p.mp3"));
+  //     channel.SetVolumeToAll(0.5f);
+  //     channel.PlayToAll();
+  // }
 
 
-    // [Command("test4")]
-    // public void Test3(ICommandContext context) {
-    //   var api = ServiceProvider!.GetRequiredService<AudioApi>();
-    //   var channel = api.UseChannel("test");
+  // [Command("test4")]
+  // public void Test3(ICommandContext context) {
+  //   var api = ServiceProvider!.GetRequiredService<AudioApi>();
+  //   var channel = api.UseChannel("test");
 
-    // Console.WriteLine("Source decoded4");
-    // var source = api.DecodeFromFile("E:/p.mp3");
-    // Console.WriteLine("Source decoded");
-    // channel.SetSource(source);
-    // channel.PlayToAll();
-    // }
+  // Console.WriteLine("Source decoded4");
+  // var source = api.DecodeFromFile("E:/p.mp3");
+  // Console.WriteLine("Source decoded");
+  // channel.SetSource(source);
+  // channel.PlayToAll();
+  // }
 
-} 
+}

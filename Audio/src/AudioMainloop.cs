@@ -16,15 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-using System.Collections;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.ProtobufDefinitions;
-using SwiftlyS2.Shared.SchemaDefinitions;
+
 namespace Audio;
 
-public class AudioMainloop : IDisposable {
+public class AudioMainloop : IDisposable
+{
   private ILogger<AudioMainloop> logger;
   private ISwiftlyCore Core;
   private AudioManager audioManager;
@@ -39,30 +39,38 @@ public class AudioMainloop : IDisposable {
 
   public bool IsRunning { get; set; }
 
-  public AudioMainloop(ISwiftlyCore Core, ILogger<AudioMainloop> logger, AudioManager audioManager) {
+  public AudioMainloop(ISwiftlyCore Core, ILogger<AudioMainloop> logger, AudioManager audioManager)
+  {
     this.logger = logger;
     this.audioManager = audioManager;
     this.Core = Core;
 
     Core.Event.OnTick += SendingLoop;
 
-    for (int i = 0; i < AudioConstants.MaxPlayers; i++) {
+    for (int i = 0; i < AudioConstants.MaxPlayers; i++)
+    {
 
       Buffer[i] = new byte[AudioConstants.MainloopBufferSize];
     }
     cancellationTokenSource = new CancellationTokenSource();
     timer = new PeriodicTimer(TimeSpan.FromMilliseconds(AudioConstants.PacketIntervalMilliseconds));
-    audioTask = Task.Run(async () => {
-      try {
+    audioTask = Task.Run(async () =>
+    {
+      try
+      {
         await StartAudio(cancellationTokenSource.Token);
-      } catch (Exception e) {
+      }
+      catch (Exception e)
+      {
         logger.LogError(e, "Error in AudioMainloop");
       }
     });
   }
 
-  public void Dispose() {
-    if (_disposed) {
+  public void Dispose()
+  {
+    if (_disposed)
+    {
       return;
     }
 
@@ -70,12 +78,15 @@ public class AudioMainloop : IDisposable {
     cancellationTokenSource.Cancel();
     timer.Dispose();
 
-    try {
+    try
+    {
       audioTask.GetAwaiter().GetResult();
     }
-    catch (OperationCanceledException) {
+    catch (OperationCanceledException)
+    {
     }
-    finally {
+    finally
+    {
       cancellationTokenSource.Dispose();
       audioTask.Dispose();
     }
@@ -96,7 +107,7 @@ public class AudioMainloop : IDisposable {
         Core.Profiler.StartRecording("AudioMainloop");
         var allPlayers = Core.PlayerManager.GetAllPlayers();
 
-        var offsets = new List<int>[AudioConstants.MaxPlayers]; 
+        var offsets = new List<int>[AudioConstants.MaxPlayers];
         for (int j = 0; j < AudioConstants.MaxPacketCount; j++)
         {
           foreach (var player in allPlayers)
@@ -107,7 +118,8 @@ public class AudioMainloop : IDisposable {
             if (offsets[i] is null) offsets[i] = new List<int>();
             var lastOffset = offsets[i].Count == 0 ? 0 : offsets[i].Last();
             var remainingLength = Buffer[i].Length - lastOffset;
-            if (remainingLength <= 0) {
+            if (remainingLength <= 0)
+            {
               throw new InvalidOperationException($"No remaining Opus buffer space for player {i}.");
             }
 
@@ -115,7 +127,7 @@ public class AudioMainloop : IDisposable {
             offsets[i].Add(lastOffset + length);
           }
           audioManager.NextFrame();
-        } 
+        }
 
         sectionNumber++;
 
@@ -126,13 +138,14 @@ public class AudioMainloop : IDisposable {
 
           var msg = Core.NetMessage.Create<CSVCMsg_VoiceData>();
 
-          msg.Client = -1;
+          msg.Entity = -1;
           msg.Audio.SequenceBytes = 0;
           msg.Audio.SampleRate = AudioConstants.SampleRate;
           msg.Audio.Format = VoiceDataFormat_t.VOICEDATA_FORMAT_OPUS;
           msg.Audio.SectionNumber = sectionNumber;
           msg.Audio.NumPackets = (uint)offsets[i].Count;
-          foreach (var offset in offsets[i]) {
+          foreach (var offset in offsets[i])
+          {
             msg.Audio.PacketOffsets.Add((uint)offset);
           }
           msg.Audio.VoiceData = Buffer[i].AsSpan(0, offsets[i].Last()).ToArray();
@@ -143,16 +156,20 @@ public class AudioMainloop : IDisposable {
         Core.Profiler.StopRecording("AudioMainloop");
       }
     }
-    catch (OperationCanceledException) {
+    catch (OperationCanceledException)
+    {
     }
   }
 
-  public void SendingLoop() {
-    while (VoiceDataQueue.TryDequeue(out var msg)) {
+  public void SendingLoop()
+  {
+    while (VoiceDataQueue.TryDequeue(out var msg))
+    {
       msg.Send();
       DisposedVoiceDataQueue.Enqueue(msg);
     }
-    while (DisposedVoiceDataQueue.TryDequeue(out var msg)) {
+    while (DisposedVoiceDataQueue.TryDequeue(out var msg))
+    {
       msg.Dispose();
     }
   }
